@@ -11,9 +11,6 @@
             <input type="email" name="email" id="email" class="form-control" placeholder="E-mail" value="{{ old('email') }}" required>
         </div>
         <div class="form-group mb-3">
-            <input type="text" name="cpf" id="cpf" class="form-control" placeholder="CPF" value="{{ old('cpf') }}" required>
-        </div>
-        <div class="form-group mb-3">
             <input type="date" name="dateBirth" id="dateBirth" class="form-control" placeholder="Data de nascimento" value="{{ old('dateBirth') }}" required>
         </div>
         <div class="input-group mb-3">

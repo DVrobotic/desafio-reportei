@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Support\Facades\Gate;
 
 class UserPolicy
 {
@@ -17,7 +18,7 @@ class UserPolicy
      */
     public function viewAny(User $user) // index
     {
-        return $user->type;
+        return Gate::allows("user-admin");
     }
 
     /**
@@ -29,9 +30,9 @@ class UserPolicy
      */
     public function view(User $user, User $model) // show
     {
-        return $user->type;
+        return Gate::allows("user-admin");
     }
-
+    
     /**
      * Determine whether the user can create models.
      *
@@ -40,7 +41,7 @@ class UserPolicy
      */
     public function create(User $user) //create e store
     {
-        return $user->type;
+        return Gate::allows("user-admin");
     }
 
     /**
@@ -52,7 +53,7 @@ class UserPolicy
      */
     public function update(User $user, User $model) // edit e update
     {
-        return ($user->id == $model->id || $user->type); // admin or if edit your profile
+        return ($user->id == $model->id || (Gate::allows("user-admin"))); // admin or if edit your profile
     }
 
     /**
@@ -64,11 +65,11 @@ class UserPolicy
      */
     public function delete(User $user, User $model) // delete
     {
-        return $user->type;
+        return Gate::allows("user-admin");
     }
 
     public function is_admin(User $user) // admin
     {
-        return $user->type;
+        return Gate::allows("user-admin");
     }
 }

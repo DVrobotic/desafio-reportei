@@ -12,8 +12,8 @@
     <div class="sidebar">
         <div class="user-panel mt-3 pb-2 d-flex">
             <div class="image">
-                <a href="{{ route('users.profile', Auth::user()->id ) }}">
-                    <img src="{{ asset('storage/img/profile/' . Auth::user()->profile_path) }}" class="img-circle" alt="User Image">
+                <a href="{{ route('users.show', Auth::user()->id ) }}">
+                    <img src="{{ asset( Auth::user()->profile_path ) }}" class="img-circle" alt="User Image">
                 </a>
             </div>
             <div class="info">
@@ -45,7 +45,7 @@
                     </a>
                 </li>
             </ul>
-            @can('is_admin', App\Models\User::class)
+            @can('create', App\Models\User::class)
                 <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                     <li class="nav-item has-treeview">
                         <a href="{{ route('users.index') }}" class="nav-link {{ Route::is('users.index') ? 'active' : '' }}">
@@ -54,6 +54,15 @@
                         </a>
                     </li>
                 </ul>
+            @else
+            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                <li class="nav-item has-treeview">
+                    <a href="{{ route('users.edit', Auth::user()->id) }}" class="nav-link {{  Route::is('users.edit', Auth::user()->id) ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-user-cog"></i>
+                        <p>Meu Perfil</p>
+                    </a>
+                </li>
+            </ul>
             @endcan
         </nav>
         <!-- Fim Sidebar Menu -->

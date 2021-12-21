@@ -26,9 +26,7 @@ class UserCreateRequest extends FormRequest
         return [
             'name' => 'required|string',
             'email' => 'required|email|string|unique:users',
-            'cpf' => 'required|cpf|string|unique:users',
-            'dateBirth' => 'required',
-            'type' => 'required',
+            'dateBirth' => 'required|date',
             'password' => 'required|string|min:8|confirmed',
             'password_confirmation' => 'required_with:password',
         ];
@@ -38,18 +36,10 @@ class UserCreateRequest extends FormRequest
         return [
             'name' => 'nome',
             'email' => 'e-mail',
-            'cpf' => 'cpf',
             'dateBirth' => 'data de nascimento',
-            'type' => 'tipo',
             'password' => 'senha',
             'password_confirmation' => 'confirmação de senha'
         ];
     }
 
-    public function messages()
-    {
-        return [
-            'cpf.cpf' => 'CPF inválido.'
-        ];
-    }
 }

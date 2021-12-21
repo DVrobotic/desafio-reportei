@@ -17,14 +17,11 @@ class CreateUsersTable extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->string('cpf')->unique();
             $table->date('dateBirth');
-            $table->string('type')->default("0"); // 0 - user common / 1- user admin
-            $table->text('profile_path')->default("profile_default.png");
-            $table->timestamp('email_verified_at')->nullable();
+            $table->text('profile_path')->default("storage/img/profile/profile_default.png");
             $table->string('password');
+            $table->unsignedBigInteger('role_id')->nullable();
             $table->rememberToken();
-            $table->foreignId('current_team_id')->nullable();
             $table->timestamps();
         });
     }

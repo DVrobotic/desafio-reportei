@@ -11,7 +11,7 @@ use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Storage;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable
 {
     use HasApiTokens;
     use HasFactory;
@@ -27,11 +27,9 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $fillable = [
         'name',
         'email',
-        'cpf',
         'dateBirth',
         'password',
-        'type',
-        'profile_path'
+        'profile_path',
     ];
 
     /**
@@ -42,27 +40,12 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $hidden = [
         'password',
         'remember_token',
-        'two_factor_recovery_codes',
-        'two_factor_secret',
     ];
 
-    /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
-     */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
+    public function role(){
+        return $this->belongsTo('App\Models\Role', 'role_id');
+    }
 
-    /**
-     * The accessors to append to the model's array form.
-     *
-     * @var array
-     */
-    protected $appends = [
-        'profile_photo_url',
-    ];
 
     public static function saveImg($data, $name, $diretorio, $imgAntiga = '') {
         if(isset($data[$name]) && is_file($data[$name])){
@@ -70,16 +53,17 @@ class User extends Authenticatable implements MustVerifyEmail
             $imgName = hash('sha256', $imgName . strval(time())) . '.' . $data[$name]->getClientOriginalExtension();
             User::deleteImg($imgAntiga, $diretorio);
             $data[$name]->storeAs($diretorio, $imgName);
-            $data[$name] = $imgName;
+            $data[$name] = "storage/img/profile/" . $imgName;
         }else{
             unset($data[$name]);
         }
 
         return $data;
     }
+    
     public static function deleteImg($imgName, $diretorio) {
-        if($imgName != '' && $imgName != 'profile_default.png'){
-            Storage::delete($diretorio . $imgName);
+        if($imgName != '' && $imgName != 'profile_default.png' && file_exists(storage_path(str_replace('storage', 'app/public', $imgName))) ){
+            unlink(storage_path(str_replace('storage', 'app/public', $imgName)));
         }
     }
 
@@ -92,4 +76,5 @@ class User extends Authenticatable implements MustVerifyEmail
         }
         return $data;
     }
+
 }

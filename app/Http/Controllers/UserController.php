@@ -6,6 +6,7 @@ use App\Http\Requests\UserCreateRequest;
 use App\Http\Requests\UserUpdateRequest;
 use App\Http\Requests\UserProfileRequest;
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 
@@ -65,7 +66,8 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        return view('admin.users.show', compact('user'));
+        $roles = Role::all();
+        return view('admin.users.show', compact('user', 'roles'));
     }
 
     public function profile(User $user)
@@ -82,7 +84,8 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        return view('admin.users.edit',compact('user'));
+        $roles = Role::all();
+        return view('admin.users.edit',compact('user', 'roles'));
     }
 
     /**
@@ -96,7 +99,12 @@ class UserController extends Controller
     {
         $data = $request->validated();
         $data = User::verifyUpdatePassword($data);
+        $data = User::saveImg($data, 'profile_path', 'public/img/profile/', $user->profile_path);
         $user->update($data);
+        if(Gate::allows('user-admin')){
+            $user->role()->associate($data['role_id']);
+            $user->save();
+        }
         return redirect()->back()->with('success',true);
     }
 
@@ -105,9 +113,8 @@ class UserController extends Controller
         $this->authorize('update', $user);
         $data = $request->validated();
         $data = User::saveImg($data, 'profile_path', 'public/img/profile/', $user->profile_path);
-
         $user->update($data);
-        return redirect()->back()->with('success',true);
+        // return redirect()->back()->with('success',true);
     }
 
     public function deletePicture(User $user)
@@ -116,7 +123,7 @@ class UserController extends Controller
         User::deleteImg($user->profile_path, 'public/img/profile/');
         $user->profile_path = "profile_default.png";
         $user->save();
-        return redirect()->back()->with('success',true);
+        // return redirect()->back()->with('success',true);
     }
 
     /**
@@ -127,6 +134,10 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        if($user->profile_path != 'storage/img/profile/profile_default.png'){
+            User::deleteImg($user->profile_path, 'public/img/profile/');
+        }
+
         $user->delete();
         return redirect()->route('users.index')->with('success',true);
     }
