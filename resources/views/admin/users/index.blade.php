@@ -11,7 +11,7 @@
     @endslot
     @slot('body')
         @foreach ($users as $user)
-            <tr>
+            <tr class="deletable">
                 <td>{{ $user->name }}</td>
                 <td>{{ $user->email }}</td>
                 <td class="options">

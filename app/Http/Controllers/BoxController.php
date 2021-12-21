@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Box;
 use Illuminate\Http\Request;
 use App\Http\Requests\BoxSearchRequest;
+use App\Http\Requests\BoxRequest;
 
 class BoxController extends Controller
 {
@@ -32,7 +33,8 @@ class BoxController extends Controller
      */
     public function create()
     {
-        //
+        $box = new Box();
+        return view('admin.boxes.create', compact('box'));
     }
 
     /**
@@ -41,9 +43,11 @@ class BoxController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(BoxRequest $request)
     {
-        //
+        $data = $request->validated();
+        Box::create($data);
+        return redirect()->route('boxes.index')->with('success',true);
     }
 
     /**
@@ -54,7 +58,7 @@ class BoxController extends Controller
      */
     public function show(Box $box)
     {
-        //
+        return view('admin.boxes.create', compact('box'));
     }
 
     /**
@@ -65,7 +69,7 @@ class BoxController extends Controller
      */
     public function edit(Box $box)
     {
-        //
+        return view('admin.boxes.edit', compact('box'));
     }
 
     /**
@@ -75,9 +79,10 @@ class BoxController extends Controller
      * @param  \App\Models\Box  $box
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Box $box)
+    public function update(BoxRequest $request, Box $box)
     {
-        //
+        $box->update($request->validated());
+        return redirect()->back()->with('success',true);
     }
 
     /**
@@ -88,6 +93,7 @@ class BoxController extends Controller
      */
     public function destroy(Box $box)
     {
-        //
+        $box->delete();
+        return redirect()->route('boxes.index')->with('success',true);
     }
 }

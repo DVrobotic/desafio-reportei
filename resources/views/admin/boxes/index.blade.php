@@ -8,7 +8,7 @@
         @endcan
         @slot('card')
             @foreach($boxes as $box)
-                <div class="col-md-4 mt-2">
+                <div class="col-md-4 mt-2 deletable">
                     <div class="card card-primary card-outline">
                         <div class="card-body box-profile">
                             
@@ -43,3 +43,7 @@
         @endslot
     @endcomponent
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('js/components/sweetAlert.js') }}"></script>
+@endpush

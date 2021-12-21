@@ -55,8 +55,8 @@ class UserController extends Controller
     {
         $data = $request->validated();
         $data = User::verifyUpdatePassword($data);
-        $data = User::saveImg($data, 'profile_path', 'public/img/profile/', $user->profile_path);
         User::create($data);
+        $data = User::saveImg($data, 'profile_path', 'public/img/profile/', $user->profile_path);
         return redirect()->route('users.index')->with('success',true);
     }
 

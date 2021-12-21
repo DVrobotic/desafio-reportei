@@ -23,7 +23,7 @@
                 <button type="submit" form="research" class="btn btn-secondary d-inline-block"><i class="fas fa-search"></i></button>
             </div>
         </form>
-        <div class="row">
+        <div class="row mt-4">
             {{ $card ?? null}}
         </div>
         {{ $footer ?? null }}
