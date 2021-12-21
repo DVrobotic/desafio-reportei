@@ -41,6 +41,14 @@
         <script src="{{ asset('js/app.js') }}"></script>
         <script>
             var errors = {!! $errors !!}
+            $(document).ready(function(){
+                $(function () {
+                    $('[data-toggle="popover"]').popover({
+                        trigger: 'click',
+                    });
+                });
+                $('[data-toggle="tooltip"]').tooltip()
+            });
         </script>
         <script src="{{ asset('js/components/error.js')  }}"></script>
         <script src="{{ asset('js/components/responsiveSidebar.js')  }}"></script>
