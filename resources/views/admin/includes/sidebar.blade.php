@@ -64,6 +64,14 @@
                 </li>
             </ul>
             @endcan
+            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                <li class="nav-item has-treeview">
+                    <a href="{{ route('boxes.index') }}" class="nav-link {{  Route::is('boxes.index') ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-box-open"></i>
+                        <p>Boxes</p>
+                    </a>
+                </li>
+            </ul>
         </nav>
         <!-- Fim Sidebar Menu -->
 

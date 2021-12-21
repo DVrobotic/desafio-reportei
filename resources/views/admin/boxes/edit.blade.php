@@ -3,12 +3,11 @@
 @section('content')
 
 @component('admin.components.edit')
-    @slot('title', 'Editar Usuário')
-    @slot('url', route('users.update', $user->id))
+    @slot('title', 'Editar Meta')
+    @slot('url', route('marks.update', $mark->id))
     @slot('form')
-        @include('admin.users.form')
+        @include('admin.marks.form')
     @endslot
 @endcomponent
 
 @endsection
-

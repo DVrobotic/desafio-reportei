@@ -1,4 +1,4 @@
-@extends('layouts.auth')
+@extends('admin.layouts.auth')
 
 @section('content')
     <p class="login-box-msg">Entre em sua conta</p>

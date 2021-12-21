@@ -2,11 +2,12 @@
 
 namespace App\Policies;
 
+use App\Models\Box;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Support\Facades\Gate;
 
-class UserPolicy
+class BoxPolicy
 {
     use HandlesAuthorization;
 
@@ -16,60 +17,56 @@ class UserPolicy
      * @param  \App\Models\User  $user
      * @return mixed
      */
-    public function viewAny(User $user) // index
+    public function viewAny(User $user)
     {
-        return Gate::allows("user-admin");
+        return $user->role != null;
     }
 
     /**
      * Determine whether the user can view the model.
      *
      * @param  \App\Models\User  $user
-     * @param  \App\Models\User  $model
+     * @param  \App\Models\Box  $box
      * @return mixed
      */
-    public function view(User $user, User $model) // show
+    public function view(User $user, Box $box)
     {
-        return Gate::allows("user-admin");
+        return $user->role != null;
     }
-    
+
     /**
      * Determine whether the user can create models.
      *
      * @param  \App\Models\User  $user
      * @return mixed
      */
-    public function create(User $user) //create e store
+    public function create(User $user)
     {
-        return Gate::allows("user-admin");
+         return Gate::allows("user-admin");
     }
 
     /**
      * Determine whether the user can update the model.
      *
      * @param  \App\Models\User  $user
-     * @param  \App\Models\User  $model
+     * @param  \App\Models\Box  $box
      * @return mixed
      */
-    public function update(User $user, User $model) // edit e update
+    public function update(User $user, Box $box)
     {
-        return ($user->id == $model->id || Gate::allows("user-admin")); // admin or if edit your profile
+         return Gate::allows("user-admin");
     }
 
     /**
      * Determine whether the user can delete the model.
      *
      * @param  \App\Models\User  $user
-     * @param  \App\Models\User  $model
+     * @param  \App\Models\Box  $box
      * @return mixed
      */
-    public function delete(User $user, User $model) // delete
+    public function delete(User $user, Box $box)
     {
-        return Gate::allows("user-admin");
+         return Gate::allows("user-admin");
     }
 
-    public function is_admin(User $user) // admin
-    {
-        return Gate::allows("user-admin");
-    }
 }

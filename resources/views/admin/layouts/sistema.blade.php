@@ -50,7 +50,7 @@
                 $('[data-toggle="tooltip"]').tooltip()
             });
         </script>
-        <script src="{{ asset('js/components/error.js')  }}"></script>
+        <script src="{{ asset('js/components/e')  }}"></script>
         <script src="{{ asset('js/components/responsiveSidebar.js')  }}"></script>
         @stack('scripts')
     </body>

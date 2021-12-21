@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PagesController;
+use App\Http\Controllers\BoxController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,4 +30,5 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
     // Rotas logadas no sistema
     Route::get('', [PagesController::class, 'dashboard'])->name('dashboard');
     Route::resource('/users', UserController::class)->names('users');
+    Route::resource('/boxes', BoxController::class)->names('boxes');
 });
