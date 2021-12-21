@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UserUpdateRequest extends FormRequest
+class UserRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -16,7 +16,7 @@ class UserUpdateRequest extends FormRequest
         return true;
     }
 
-    /**
+    /*
      * Get the validation rules that apply to the request.
      *
      * @return array
@@ -24,12 +24,15 @@ class UserUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|string',
-            'email' => 'required|email|string|unique:users,email,' . $this->user->id,
-            'cpf' => 'required|cpf|string|unique:users,cpf,' . $this->user->id,
+            'name' => 'required|string|min:3|max:255',
+            'email' => 'required|email|string|unique:users' . ($this->getMethod() != "PUT" ?  '':',email,' . $this->user->id),
             'dateBirth' => 'required',
             'password' => 'nullable|string|min:8|confirmed',
             'password_confirmation' => 'required_with:password',
+            'profile_path' => 'image|mimes:jpeg,png,bmp,svg,webp|max:10000',
+            'password' => ($this->getMethod() != "PUT" ? 'required|' : 'nullable|') . 'string|min:8|confirmed',
+            'password_confirmation' => 'required_with:password',
+            'role_id' => 'exists:roles,id',
         ];
     }
 
@@ -37,17 +40,10 @@ class UserUpdateRequest extends FormRequest
         return [
             'name' => 'nome',
             'email' => 'e-mail',
-            'cpf' => 'cpf',
             'dateBirth' => 'data de nascimento',
             'password' => 'senha',
-            'password_confirmation' => 'confirmação de senha'
-        ];
-    }
-
-    public function messages()
-    {
-        return [
-            'cpf.cpf' => 'CPF inválido.'
+            'password_confirmation' => 'confirmação de senha',
+            'profile_path' => 'imagem',
         ];
     }
 }

@@ -29,12 +29,4 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
     // Rotas logadas no sistema
     Route::get('', [PagesController::class, 'dashboard'])->name('dashboard');
     Route::resource('/users', UserController::class)->names('users');
-    Route::get('/users/profile/{user}', [UserController::class, 'profile'])->name('users.profile');
-    Route::put('/users/picture/{user}', [UserController::class, 'updatePicture'])->name('users.picture');
-    Route::delete('/users/picture/{user}', [UserController::class, 'deletePicture'])->name('users.picture');
-});
-
-// Rotas hospedadas
-Route::get('/storageLink', function () {
-    Artisan::call('storage:link');
 });

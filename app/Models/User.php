@@ -62,7 +62,7 @@ class User extends Authenticatable
     }
     
     public static function deleteImg($imgName, $diretorio) {
-        if($imgName != '' && $imgName != 'profile_default.png' && file_exists(storage_path(str_replace('storage', 'app/public', $imgName))) ){
+        if($imgName != '' && $imgName != static::getDefaultImgPath() && file_exists(storage_path(str_replace('storage', 'app/public', $imgName))) ){
             unlink(storage_path(str_replace('storage', 'app/public', $imgName)));
         }
     }
@@ -75,6 +75,15 @@ class User extends Authenticatable
             unset($data['password'], $data['password_confirmation']);
         }
         return $data;
+    }
+
+    public function setDefaultImg(){
+        $this->profile_path = static::getDefaultImgPath();
+        $this->save;
+    }
+
+    public static function getDefaultImgPath(){
+            return 'storage/img/profile/profile_default.png';
     }
 
 }

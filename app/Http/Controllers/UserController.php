@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\UserCreateRequest;
-use App\Http\Requests\UserUpdateRequest;
-use App\Http\Requests\UserProfileRequest;
+use App\Http\Requests\UserRequest;
 use App\Models\User;
 use App\Models\Role;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class UserController extends Controller
 {
@@ -41,7 +40,9 @@ class UserController extends Controller
     public function create()
     {
         $user = new User();
-        return view('admin.users.create',compact('user'));
+        $user->setDefaultImg(); 
+        $roles = Role::all();
+        return view('admin.users.create',compact('user', 'roles'));
     }
 
     /**
@@ -50,7 +51,7 @@ class UserController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(UserCreateRequest $request)
+    public function store(UserRequest $request)
     {
         $data = $request->validated();
         $data = User::verifyUpdatePassword($data);
@@ -68,12 +69,6 @@ class UserController extends Controller
     {
         $roles = Role::all();
         return view('admin.users.show', compact('user', 'roles'));
-    }
-
-    public function profile(User $user)
-    {
-        $this->authorize('update', $user);
-        return view('admin.users.profile', compact('user'));
     }
 
     /**
@@ -95,7 +90,7 @@ class UserController extends Controller
      * @param  \App\User  $role
      * @return \Illuminate\Http\Response
      */
-    public function update(UserUpdateRequest $request, User $user)
+    public function update(UserRequest $request, User $user)
     {
         $data = $request->validated();
         $data = User::verifyUpdatePassword($data);
@@ -106,24 +101,6 @@ class UserController extends Controller
             $user->save();
         }
         return redirect()->back()->with('success',true);
-    }
-
-    public function updatePicture(UserProfileRequest $request, User $user)
-    {
-        $this->authorize('update', $user);
-        $data = $request->validated();
-        $data = User::saveImg($data, 'profile_path', 'public/img/profile/', $user->profile_path);
-        $user->update($data);
-        // return redirect()->back()->with('success',true);
-    }
-
-    public function deletePicture(User $user)
-    {
-        $this->authorize('update', $user);
-        User::deleteImg($user->profile_path, 'public/img/profile/');
-        $user->profile_path = "profile_default.png";
-        $user->save();
-        // return redirect()->back()->with('success',true);
     }
 
     /**

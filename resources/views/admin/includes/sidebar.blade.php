@@ -17,7 +17,7 @@
                 </a>
             </div>
             <div class="info">
-                <a href="{{ route('users.profile', Auth::user()->id ) }}" class="d-block">{{ collect(explode(' ', Auth::user()->name))->slice(0, 2)->implode(' ') }}</a>
+                <a href="{{ route('users.show', Auth::user()->id ) }}" class="d-block">{{ collect(explode(' ', Auth::user()->name))->slice(0, 2)->implode(' ') }}</a>
             </div>
             <div class="info align-self-center">
                 <form id="logout-form" method="post" action="{{ route('logout') }}">
