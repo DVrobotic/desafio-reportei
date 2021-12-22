@@ -96,7 +96,7 @@ class BoxController extends Controller
         }
         $box->update($data);
         if(!empty($contents)){
-            return view('admin.contents.content', compact('contents'));
+            return view('admin.contents.contentAjax', compact('contents'));
         }
     }
 

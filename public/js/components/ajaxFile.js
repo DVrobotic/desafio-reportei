@@ -1,5 +1,5 @@
 (function( $ ){
-    $.fn.ajaxFile = function(element, success = false, func = null, validation = false, html = null, reloadIDs, closest = false, find = false, funcAction = null, reloading = false,  ) {
+    $.fn.ajaxFile = function(element, success = false, func = null, validation = false, fileArrange = false, html = null, reloadIDs, closest = false, find = false, funcAction = null, reloading = false,  ) {
         $(this).on('submit', element, function(event) {
             event.preventDefault(); // impedir o submit normal
             var form = $(this);
@@ -19,9 +19,23 @@
                         } else if(find){
                             form.find(html).append(data);
                         } else{
-                            console.log(html);
                             html.append(data);
                         }
+                    }
+
+                    if(fileArrange){
+                        var imgs = $(data).closest('.img-card');
+                        var videos = $(data).closest('.video-card');
+                        var pdfs = $(data).closest('.pdf-card');
+                        var docs = $(data).closest('.doc-list');
+                        var sheets = $(data).closest('.sheet-list');
+
+                        $('#img-body').append(imgs);
+                        $('#imageCollapse').collapse();
+                        $('#video-body').append(videos);
+                        $('#pdf-body').append(videos);
+                        $('#pdf-ul-list').append(pdfs);
+                        $('#sheet-ul-list').append(sheets);
                     }
         
                     if(!reloading){
