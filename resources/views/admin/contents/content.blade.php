@@ -8,14 +8,19 @@
         </h5>
       </div>
       <div id="imageCollapse" class="collapse" aria-labelledby="headingOne" data-parent="#contents">
-        <div class="card-body" id="img-body">
+        <div class="card-body mb-5" id="img-body">
             @foreach($contents as $content)
                 @if(strstr($content->type,'image/'))
-                    <div class="img-card card card-dark card-outline border-dark col-md-5 col-12 d-inline-block mx-3 my-3 p-0 align-top" style="max-height:410px; max-width:410px">
+                    <div class="mb-5 deletable img-card card card-dark card-outline border-left-0 border-right-0 border-bottom-0 col-md-5 col-12 d-inline-block mx-3 my-3 p-1 align-top" style="max-height:410px; max-width:410px">
                         <div class="card-body m-0 p-0">
                             <div class="text-center w-100 m-0 p-0">
                                 <img load="lazy" class="img-fluid m-0 p-0" style="max-height:400px; max-width:400px" src="{{ asset($content->file_path) }}" alt="Imagem não encontrada!">
                             </div>
+                        </div>
+                        <div class="card-footer p-1">
+                            <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-left btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
+                            <button class="btn btn-outline-primary float-right btn-sm border-0 rounded-circle"><i class="fas fa-download"></i></button>
+                            <button class="btn btn-outline-warning float-right btn-sm border-0 rounded-circle"><i class="text-dark far fa-star"></i></button>
                         </div>
                     </div>
                 @endif
@@ -35,11 +40,16 @@
             <div class="card-body" id="video-body">
                 @foreach($contents as $content)
                     @if(strstr($content->type,'video/'))
-                        <div class="card card-dark card-outline border-dark col-md-5 col-12 d-inline-block mx-3 my-3 p-0 align-top" style="max-width:810px; max-height:410px">
+                        <div class="mb-5 deletable card card-dark card-outline border-left-0 border-right-0 border-bottom-0 col-md-5 col-12 d-inline-block mx-3 my-3 p-0 align-top" style="max-width:810px; max-height:410px">
                             <div class="card-body m-0 p-0">
                                 <div class="text-center w-100 m-0 p-0">
-                                    <video controls pause="true" load="lazy" class="img-fluid m-0 p-0" style="width:800px; height:400px" src="{{ asset($content->file_path) }}" alt="Imagem não encontrada!"></video>
+                                    <iframe sandbox allowfullscreen pause="true" load="lazy" class="img-fluid m-0 p-0" style="width:800px; height:400px" src="{{ asset($content->file_path) }}" alt="Imagem não encontrada!"></iframe>
                                 </div>
+                            </div>
+                            <div class="card-footer p-1">
+                                <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-left btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
+                                <button class="btn btn-outline-primary float-right btn-sm border-0 rounded-circle"><i class="fas fa-download"></i></button>
+                                <button class="btn btn-outline-warning float-right btn-sm border-0 rounded-circle"><i class="text-dark far fa-star"></i></button>
                             </div>
                         </div>
                     @endif
@@ -56,14 +66,19 @@
             </h5>
         </div>
         <div id="pdfCollapse" class="collapse" aria-labelledby="headingPdf" data-parent="#contents">
-            <div class="card-body" id="odf-body">
+            <div class="card-body" id="pdf-body">
                 @foreach($contents as $content)
                     @if(strstr($content->type, 'pdf'))
-                        <div class="card card-dark card-outline border-dark col-md-5 col-12 d-inline-block mx-3 my-3 p-0" style="max-width:800px; max-height:800px">
+                        <div class="mb-5 deletable card card-dark card-outline border-left-0 border-right-0 border-bottom-0 col-md-5 col-12 d-inline-block mx-3 my-3 p-0" style="max-width:800px; max-height:800px">
                             <div class="card-body m-0 p-0">
                                 <div class="text-center w-100 m-0 p-0">
                                     <iframe load="lazy" class="img-fluid m-0 p-0" style="min-width:400px; min-height:400px" src="{{ asset($content->file_path) }}" alt="Imagem não encontrada!"></iframe>
                                 </div>
+                            </div>
+                            <div class="card-footer p-1">
+                                <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-left btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
+                                <button class="btn btn-outline-primary float-right btn-sm border-0 rounded-circle"><i class="fas fa-download"></i></button>
+                                <button class="btn btn-outline-warning float-right btn-sm border-0 rounded-circle"><i class="text-dark far fa-star"></i></button>
                             </div>
                         </div>
                     @endif
@@ -81,7 +96,7 @@
         </div>
         <div id="docCollapse" class="collapse" aria-labelledby="headingDocs" data-parent="#contents">
             <div class="card-body">
-                <ul id="pdf-ul-list" class="list-group list-group-unbordered mb-3 text-left">
+                <ul id="doc-ul-list" class="list-group list-group-unbordered mb-3 text-left">
                     @foreach($contents as $content)
                         @if(strstr($content->type,'text/rtf') || strstr($content->type,'application/msword') || strstr($content->type,'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))
                             <li class="list-group-item"><i class="text-primary fas fa-file-alt ml-3"></i> Documento </li>

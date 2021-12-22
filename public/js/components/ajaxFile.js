@@ -30,13 +30,15 @@
                         var docs = $(data).closest('.doc-list');
                         var sheets = $(data).closest('.sheet-list');
 
+                        console.log(pdfs);
+
                         $('#img-body').append(imgs);
                         $('#video-body').append(videos);
                         $('#pdf-body').append(pdfs);
-                        $('#pdf-ul-list').append(docs);
+                        $('#doc-ul-list').append(docs);
                         $('#sheet-ul-list').append(sheets);
 
-                        console.log(pdfs);
+                        console.log($('#pdfCollapse'));
 
                         if(imgs.length > 0){
                             $('#imageCollapse').collapse();

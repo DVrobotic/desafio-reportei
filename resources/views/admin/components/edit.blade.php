@@ -9,6 +9,7 @@
                 @method('put')
                 {{ $form ?? null }}
             </form>
+            {{$body ?? null }}
         </div>
         <div class="card-footer">
             <button type="submit" form="form-adicionar" class="btn btn-dark float-right">{{$button_name ?? 'Salvar Alterações'}}</button>

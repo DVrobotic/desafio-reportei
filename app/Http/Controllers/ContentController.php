@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Content;
 use Illuminate\Http\Request;
+use App\Http\Requests\DeleteContentRequest;
 
 class ContentController extends Controller
 {
@@ -78,8 +79,10 @@ class ContentController extends Controller
      * @param  \App\Models\Content  $content
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Content $content)
+    public function destroy(DeleteContentRequest $request)
     {
-        //
+        $content = Content::where('id', $request->content_id)->first();
+        Content::deleteFile($content->file_path, 'public/boxes/files/');
+        $content->delete();
     }
 }

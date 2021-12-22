@@ -9,6 +9,9 @@ class Content extends Model
 {
     use HasFactory;
 
+    public $table = "contents";
+    protected $primaryKey = "id";
+
     protected $fillable = ['file_path', 'box_id'];
 
     public function box(){
