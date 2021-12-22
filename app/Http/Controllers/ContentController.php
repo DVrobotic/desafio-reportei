@@ -4,74 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Content;
 use Illuminate\Http\Request;
-use App\Http\Requests\DeleteContentRequest;
+use App\Http\Requests\ContentRequest;
+use Response;
 
 class ContentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Content  $content
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Content $content)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Content  $content
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Content $content)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Content  $content
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Content $content)
-    {
-        //
-    }
 
     /**
      * Remove the specified resource from storage.
@@ -79,10 +16,27 @@ class ContentController extends Controller
      * @param  \App\Models\Content  $content
      * @return \Illuminate\Http\Response
      */
-    public function destroy(DeleteContentRequest $request)
+    public function destroy(ContentRequest $request)
     {
         $content = Content::where('id', $request->content_id)->first();
         Content::deleteFile($content->file_path, 'public/boxes/files/');
         $content->delete();
     }
+
+    public function downloadFile(ContentRequest $request)
+    {
+        $content = Content::where('id', $request->content_id)->first();
+
+        $pos = strpos($content->file_path, '.');
+        $extension = substr($content->file_path, $pos+1, strlen($content->file_path));
+        $file = storage_path(str_replace('storage', 'app/public', $content->file_path));
+
+        if(file_exists($file)){
+            return Response::download($file, 'content.' . $extension);
+        }
+
+        return redirect()->back();
+        
+    }
+    
 }

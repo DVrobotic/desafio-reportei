@@ -33,4 +33,5 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
     Route::resource('/users', UserController::class)->names('users');
     Route::resource('/boxes', BoxController::class)->names('boxes');
     Route::delete('/content/delete', [ContentController::class, 'destroy'])->name('contents.destroy')->middleware('can:delete,App\Models\Content');
+    Route::post('/content/download/', [ContentController::class, 'downloadFile'])->name('contents.download');
 });

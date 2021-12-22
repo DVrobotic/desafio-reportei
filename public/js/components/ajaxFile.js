@@ -38,19 +38,23 @@
 
                         if(imgs.length > 0){
                             $('#imageCollapse').collapse();
+                            $('#imageCollapse').addClass('show');
                         }
                         if(videos.length > 0){
                             $('#videoCollapse').collapse();
+                            $('#videoCollapse').addClass('show');
                         }
                         if(pdfs.length > 0){
                             $('#pdfCollapse').collapse();
+                            $('#pdfCollapse').addClass('show');
                         }
                         if(docs.length > 0){
-                            console.log('teste');
                             $('#docCollapse').collapse();
+                            $('#docCollapse').addClass('show');
                         }
                         if(sheets.length > 0){
                             $('#sheetCollapse').collapse();
+                            $('#sheetCollapse').addClass('show');
                         }
                     }
         
