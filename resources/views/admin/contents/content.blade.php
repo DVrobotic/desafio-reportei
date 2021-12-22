@@ -99,7 +99,12 @@
                 <ul id="doc-ul-list" class="list-group list-group-unbordered mb-3 text-left">
                     @foreach($contents as $content)
                         @if(strstr($content->type,'text/rtf') || strstr($content->type,'application/msword') || strstr($content->type,'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))
-                            <li class="list-group-item"><i class="text-primary fas fa-file-alt ml-3"></i> Documento </li>
+                            <li class="list-group-item deletable">
+                                <i class="text-primary fas fa-file-alt ml-3"></i>  
+                                Documento 
+                                <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-right btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
+                                <button class="btn btn-outline-primary float-right btn-sm border-0 rounded-circle"><i class="fas fa-download"></i></button>
+                            </li>
                         @endif
                     @endforeach
                 </ul>
@@ -119,7 +124,11 @@
                 <ul id="sheet-ul-list" class="list-group list-group-unbordered mb-3 text-left">
                     @foreach($contents as $content)
                         @if(strstr($content->type,'text/csv') || strstr($content->type,'application/vnd.ms-excel') || strstr($content->type,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'))
-                            <li class="list-group-item"><i class="text-olive fas fa-file-excel ml-3"></i></i> Planilha </li>
+                            <li class="deletable list-group-item"><i class="text-olive fas fa-file-excel ml-3"></i></i> 
+                                Planilha 
+                                <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-right btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
+                                <button class="btn btn-outline-primary float-right btn-sm border-0 rounded-circle"><i class="fas fa-download"></i></button>
+                            </li>
                         @endif
                     @endforeach
                 </ul>

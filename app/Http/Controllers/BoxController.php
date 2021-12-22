@@ -47,8 +47,8 @@ class BoxController extends Controller
     public function store(BoxRequest $request)
     {
         $data = $request->validated();
-        Box::create($data);
-        return redirect()->route('boxes.index')->with('success',true);
+        $box = Box::create($data);
+        return redirect()->route('boxes.edit', $box->id)->with('success',true);
     }
 
     /**
@@ -108,6 +108,10 @@ class BoxController extends Controller
      */
     public function destroy(Box $box)
     {
+        foreach($box->contents as $content){
+            Content::deleteFile($content->file_path, 'public/boxes/files/');
+        }
+
         $box->delete();
         return redirect()->route('boxes.index')->with('success',true);
     }

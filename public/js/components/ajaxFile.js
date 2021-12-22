@@ -30,15 +30,11 @@
                         var docs = $(data).closest('.doc-list');
                         var sheets = $(data).closest('.sheet-list');
 
-                        console.log(pdfs);
-
                         $('#img-body').append(imgs);
                         $('#video-body').append(videos);
                         $('#pdf-body').append(pdfs);
                         $('#doc-ul-list').append(docs);
                         $('#sheet-ul-list').append(sheets);
-
-                        console.log($('#pdfCollapse'));
 
                         if(imgs.length > 0){
                             $('#imageCollapse').collapse();
@@ -50,6 +46,7 @@
                             $('#pdfCollapse').collapse();
                         }
                         if(docs.length > 0){
+                            console.log('teste');
                             $('#docCollapse').collapse();
                         }
                         if(sheets.length > 0){
