@@ -1,18 +1,18 @@
 @foreach($contents as $content)
-@if(strstr($content->type,'image/'))
-    <div class="mb-5 deletable img-card card card-dark card-outline border-left-0 border-right-0 border-bottom-0 col-md-5 col-12 d-inline-block mx-3 my-3 p-0 align-top" style="max-height:410px; max-width:410px">
-        <div class="card-body m-0 p-0">
-            <div class="text-center w-100 m-0 p-0">
-                <img load="lazy" class="img-fluid m-0 p-0" style="max-height:400px; max-width:400px" src="{{ asset($content->file_path) }}" alt="Imagem não encontrada!">
+    @if(strstr($content->type,'image/'))
+        <div class="mb-5 deletable img-card card card-dark card-outline border-left-0 border-right-0 border-bottom-0 col-md-5 col-12 d-inline-block mx-3 my-3 p-0 align-top" style="max-height:410px; max-width:410px">
+            <div class="card-body m-0 p-0">
+                <div class="text-center w-100 m-0 p-0">
+                    <img load="lazy" class="img-fluid m-0 p-0" style="max-height:400px; max-width:400px" src="{{ asset($content->file_path) }}" alt="Imagem não encontrada!">
+                </div>
+            </div>
+            <div class="card-footer p-1">
+                <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-left btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
+                <button class="btn btn-outline-warning float-right btn-sm border-0 rounded-circle"><i class="text-dark far fa-star"></i></button>
+                <button type="button" data-id="{{ $content->id }}" class="button-download btn btn-outline-primary float-right btn-sm border-0 rounded-circle"><i class="fas fa-download"></i></button>
             </div>
         </div>
-        <div class="card-footer p-1">
-            <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-left btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
-            <button class="btn btn-outline-primary float-right btn-sm border-0 rounded-circle"><i class="fas fa-download"></i></button>
-            <button class="btn btn-outline-warning float-right btn-sm border-0 rounded-circle"><i class="text-dark far fa-star"></i></button>
-        </div>
-    </div>
-@endif
+    @endif
 @endforeach
 @foreach($contents as $content)
     @if(strstr($content->type,'video/'))
@@ -24,8 +24,8 @@
             </div>
             <div class="card-footer p-1">
                 <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-left btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
-                <button class="btn btn-outline-primary float-right btn-sm border-0 rounded-circle"><i class="fas fa-download"></i></button>
                 <button class="btn btn-outline-warning float-right btn-sm border-0 rounded-circle"><i class="text-dark far fa-star"></i></button>
+                <button type="button" data-id="{{ $content->id }}" class="button-download btn btn-outline-primary float-right btn-sm border-0 rounded-circle"><i class="fas fa-download"></i></button>
             </div>
         </div>
     @endif
@@ -40,20 +40,29 @@
             </div>
             <div class="card-footer p-1">
                 <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-left btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
-                <button class="btn btn-outline-primary float-right btn-sm border-0 rounded-circle"><i class="fas fa-download"></i></button>
                 <button class="btn btn-outline-warning float-right btn-sm border-0 rounded-circle"><i class="text-dark far fa-star"></i></button>
+                <button type="button" data-id="{{ $content->id }}" class="button-download btn btn-outline-primary float-right btn-sm border-0 rounded-circle"><i class="fas fa-download"></i></button>
             </div>
         </div>
     @endif
 @endforeach
 @foreach($contents as $content)
     @if(strstr($content->type,'text/rtf') || strstr($content->type,'application/msword') || strstr($content->type,'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))
-        <li class="doc-list list-group-item"><i class="text-primary fas fa-file-alt ml-3"></i> Documento </li>
+        <li class="deletable doc-list list-group-item">
+            <i class="text-primary fas fa-file-alt ml-3"></i>  
+            Documento 
+            <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-right btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
+            <button type="button" data-id="{{ $content->id }}" class="button-download btn btn-outline-primary float-right btn-sm border-0 rounded-circle"><i class="fas fa-download"></i></button>
+        </li>
     @endif
 @endforeach
 @foreach($contents as $content)
     @if(strstr($content->type,'text/csv') || strstr($content->type,'application/vnd.ms-excel') || strstr($content->type,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'))
-        <li class="sheet-list list-group-item"><i class="text-olive fas fa-file-excel ml-3"></i></i> Planilha </li>
+        <li class="deletable sheet-list list-group-item"><i class="text-olive fas fa-file-excel ml-3"></i> 
+            Planilha 
+            <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-right btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
+            <button type="button" data-id="{{ $content->id }}" class="button-download btn btn-outline-primary float-right btn-sm border-0 rounded-circle"><i class="fas fa-download"></i></button>
+        </li>
     @endif
 @endforeach
       
