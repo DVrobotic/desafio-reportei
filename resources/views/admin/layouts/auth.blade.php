@@ -11,11 +11,11 @@
         @stack('styles')
     </head>
 
-    <body class="hold-transition login-page bg-dark">
+    <body class="hold-transition login-page" style="background-color: #2E64E0">
         <div class="login-box">
             <div class="login-logo">
                 <a href="{{ route('home') }}">
-                    <img src="{{ asset('img/codejr.png') }}" class="img-fluid">
+                    <img src="{{ asset('img/login-logo.png') }}" class="img-fluid">
                 </a>
             </div>
             <div class="card">

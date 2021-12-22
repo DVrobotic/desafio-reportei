@@ -15,7 +15,7 @@
                 </span>
             </div>
         </div>
-        <button type="submit" class="btn btn-dark btn-block mt-3 mb-3">Entrar</button>
+        <button type="submit" style="background-color: #2E64E0" class="btn btn-primary btn-block mt-3 mb-3">Entrar</button>
     </form>
     <hr>
     <div class='text-center'>

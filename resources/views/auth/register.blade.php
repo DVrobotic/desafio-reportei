@@ -24,7 +24,7 @@
         <div class="form-group mb-3">
             <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" placeholder="Confirmação de senha" minlength="8" required>
         </div>
-        <button type="submit" class="btn btn-dark btn-block mt-3 mb-3">Registrar-se</button>
+        <button type="submit" style="background-color: #2E64E0" class="btn btn-dark btn-block mt-3 mb-3">Registrar-se</button>
     </form>
     <hr>
     <div class='text-center'>

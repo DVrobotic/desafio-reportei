@@ -1,10 +1,10 @@
 <!-- Sidebar -->
-<aside class="main-sidebar sidebar-dark-primary elevation-4" style="overflow-x: hidden;">
+<aside class="main-sidebar sidebar-dark-primary elevation-4" style="overflow-x: hidden; background-color: #222222;">
     <span>
         <a href="/" id="link-logo" class="brand-link icone-img link-logo">
             <span class="fa-stack">
-                <img src="{{ asset('img/logo_fechada.png') }}" id="img-logo-close" class="brand-image display-none">
-                <img src="{{ asset('img/codejr.png') }}" id="img-logo" class="img-logo ">
+                <img src="{{ asset('img/sidebar-logo-fechada.png') }}" id="img-logo-close" class="brand-image display-none pl-1 pt-1">
+                <img src="{{ asset('img/sidebar-logo.png') }}" id="img-logo" class="img-logo ">
             </span>
         </a>
     </span>
@@ -22,29 +22,13 @@
             <div class="info align-self-center">
                 <form id="logout-form" method="post" action="{{ route('logout') }}">
                     @csrf
-                    <button class="btn-dark border-0" type="submit"><a href="" onclick="$('#logout-form').submit()" class="d-block"><i class="nav-icon fas fa-power-off"></i></a></button>
+                    <button style="background-color: #222222;" class="btn-dark border-0" type="submit"><a href="" onclick="$('#logout-form').submit()" class="d-block"><i class="nav-icon fas fa-power-off"></i></a></button>
                 </form>
             </div>
         </div>
 
         <!-- Sidebar Menu -->
         <nav class="mt-2">
-            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-                <li class="nav-item has-treeview">
-                    <a href="{{ route('home') }}" class="nav-link {{ Route::is('home') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-home"></i>
-                        <p>Home</p>
-                    </a>
-                </li>
-            </ul>
-            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-                <li class="nav-item has-treeview">
-                    <a href="{{ route('dashboard') }}" class="nav-link {{ Route::is('dashboard') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-tachometer-alt"></i>
-                        <p>Dashboard</p>
-                    </a>
-                </li>
-            </ul>
             @can('create', App\Models\User::class)
                 <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                     <li class="nav-item has-treeview">
