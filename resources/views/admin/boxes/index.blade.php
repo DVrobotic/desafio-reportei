@@ -3,9 +3,8 @@
 @section('content')
     @component('admin.components.tableCard')
         @slot('title', 'Content Boxes')
-        @can('create', App\Models\Box::class)
-            @slot('url', route('boxes.create'))
-        @endcan
+        @slot('url', route('boxes.create'))
+        @slot('model', App\Models\Box::class)
         @slot('card')
             @foreach($boxes as $box)
                 <div class="col-md-4 mt-2 deletable">

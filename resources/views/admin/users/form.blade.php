@@ -1,10 +1,10 @@
 <div class="row">
     <div class="text-center col-sm-6 col-12 mx-auto mb-3">
-        <img class="profile-user-img img-fluid img-circle" style="height: 120px;width:120px" src="{{ asset($user->profile_path ) }}" alt="Imagem de perfil">
+        <img id="profilePreview" class="profile-user-img img-fluid img-circle" style="height: 120px;width:120px" src="{{ asset($user->profile_path ) }}" alt="Imagem de perfil">
     </div>
     <div class="form-group col-sm-6 col-12 my-auto">  
         <label for="profile_path">Imagem de Perfil</label>
-        <input type="file" accept="image/*" class="form-control-file" name="profile_path">
+        <input id="profile" type="file" accept="image/*" class="form-control-file" name="profile_path">
     </div>
     <div class="form-group col-12">
         <label for="name" class="required">Nome </label>
@@ -57,6 +57,7 @@
 
 @push('scripts')
     <script src="{{ asset('js/components/changeVisibilityPassword.js') }}"></script>
+    <script src="{{ asset('js/components/previewImage.js') }}"></script>
     <script>
         $(function() {
             $('.select2').select2();
@@ -65,5 +66,12 @@
         $('select[value]').each(function () {
             $(this).val($(this).attr('value'));
         });
+
+        $("#profile").change(function() {
+            filePreview(this, '#profilePreview');
+        });
+    </script>
+    <script>
+        
     </script>
 @endpush

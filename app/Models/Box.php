@@ -7,11 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Box extends Model
 {
+    use HasFactory;
+    
     protected $fillable = ["id", "name"];
 
     public function banner(){
         return $this->belongsTo(Contnet::class, 'content_id');
     }
 
-    use HasFactory;
+    
 }

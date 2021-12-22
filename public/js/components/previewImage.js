@@ -7,10 +7,3 @@ function filePreview(input, previewProfile) {
         reader.readAsDataURL(input.files[0]); // convert to base64 string
     }
 }
-
-// Example usage
-// #profile = input type file
-// #previewProfile = id img file receiver
-// $("#profile").change(function() {
-//     filePreview(this, '#previewProfile');
-// });

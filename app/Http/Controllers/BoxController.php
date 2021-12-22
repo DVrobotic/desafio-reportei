@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Box;
+use App\Models\Content;
 use Illuminate\Http\Request;
 use App\Http\Requests\BoxSearchRequest;
 use App\Http\Requests\BoxRequest;
@@ -58,7 +59,7 @@ class BoxController extends Controller
      */
     public function show(Box $box)
     {
-        return view('admin.boxes.create', compact('box'));
+        return view('admin.boxes.show', compact('box'));
     }
 
     /**
@@ -81,7 +82,19 @@ class BoxController extends Controller
      */
     public function update(BoxRequest $request, Box $box)
     {
-        $box->update($request->validated());
+        $data = $request->validated();
+        $files = $request->file('content_list');
+
+        if($request->hasFile('content_list'))
+        {
+            foreach ($files as $key => $file) {
+                Content::savefile($data, $key, 'content_list', 'public/boxes/files/', $file);
+                unset($data['content_list'][$key]);
+            }
+        }
+
+        $box->update($data);
+
         return redirect()->back()->with('success',true);
     }
 

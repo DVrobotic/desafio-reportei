@@ -4,13 +4,15 @@
         <h3 class="float-left m-0 table-title">{{ $title ?? null }}</h3>
         <div class="float-right mr-2">
             @if (isset($url))
-                <div class="input-group input-group-sm">
-                    <a href="{{ $url ?? null }}" >
-                        <button type="button" class="btn btn-dark icone-add-table">
-                            <b><i class="fas fa-plus-circle "></i> Adicionar</b>
-                        </button>
-                    </a>
-                </div>
+                @can('create', $model)
+                    <div class="input-group input-group-sm">
+                        <a href="{{ $url ?? null }}" >
+                            <button type="button" class="btn btn-dark icone-add-table">
+                                <b><i class="fas fa-plus-circle "></i> Adicionar</b>
+                            </button>
+                        </a>
+                    </div>
+                @endcan
             @endif
         </div>
     </div>
@@ -30,14 +32,17 @@
     </div>
 </div>
 @else
+    
     <div class="text-center" style="color: #949699">
         <i class="fas fa-exclamation-circle" style="font-size: 10em"></i>
         <p class="mb-4 h2">Nenhum item encontrado!</p>
-        <a href="{{ $url ?? '#' }}">
-            <button type="button" class="btn btn-dark">
-                <b><i class="fas fa-plus-circle"></i> Adicionar novo item</b>
-            </button>
-        </a>
+        @can('create', $model)
+            <a href="{{ $url ?? '#' }}">
+                <button type="button" class="btn btn-dark">
+                    <b><i class="fas fa-plus-circle"></i> Adicionar novo item</b>
+                </button>
+            </a>
+        @endcan
     </div>
 @endif
 
