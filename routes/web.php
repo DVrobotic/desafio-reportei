@@ -20,7 +20,6 @@ use App\Http\Controllers\ContentController;
 Auth::routes();
 
 Route::get('', [PagesController::class, 'home'])->name('home');
-Route::get('/home', [PagesController::class, 'home'])->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function(){
     // Rotas logadas

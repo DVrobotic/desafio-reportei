@@ -15,7 +15,7 @@ class PagesController extends Controller
      */
     public function home()
     {
-        return view('site.home');
+        return view('auth.login');
     }
     public function dashboard()
     {

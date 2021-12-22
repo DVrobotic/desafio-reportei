@@ -18,11 +18,6 @@
         <button type="submit" class="btn btn-dark btn-block mt-3 mb-3">Entrar</button>
     </form>
     <hr>
-    @if (Route::has('password.request'))
-        <div class='text-center'>
-            <a href="{{ route('password.request') }}">Esqueceu sua senha?</a>
-        </div>
-    @endif
     <div class='text-center'>
         Ainda não tem uma conta? <a href="{{ route('register') }}"><b>Cadastre-se.</b></a>
     </div>
