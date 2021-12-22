@@ -12,7 +12,7 @@
         <div class="card card-dark card-outline border-dark col-md-5 col-12 d-inline-block mx-auto my-3 p-0" style="max-width:800px; max-height:400px">
             <div class="card-body m-0 p-0">
                 <div class="text-center w-100 m-0 p-0">
-                    <iframe class="img-fluid m-0 p-0" style="width:800px; height:400px" src="{{ asset($content->file_path) }}" alt="Imagem não encontrada!">
+                    <iframe class="img-fluid m-0 p-0" style="width:800px; height:400px" src="{{ asset($content->file_path) }}" alt="Imagem não encontrada!"></iframe>
                 </div>
             </div>
         </div>
