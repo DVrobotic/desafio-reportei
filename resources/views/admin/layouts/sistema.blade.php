@@ -12,7 +12,7 @@
         @stack('styles')
     </head>
 
-    <body class="hold-transition sidebar-mini layout-fixed">
+    <body class="hold-transition sidebar-mini layout-fixed" style="min-width:500px">
         <div class="wrapper">
             @include('admin.includes.navbar')
             @include('admin.includes.sidebar')

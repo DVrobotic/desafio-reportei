@@ -9,7 +9,7 @@ class Content extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['file_path'];
+    protected $fillable = ['file_path', 'box_id'];
 
     public function box(){
         return $this->belongsTo(Box::class, 'box_id');
@@ -33,6 +33,16 @@ class Content extends Model
     public static function deleteFile($fileName, $diretorio) {
         if($fileName != '' && file_exists(storage_path(str_replace('storage', 'app/public', $fileName))) ){
             unlink(storage_path(str_replace('storage', 'app/public', $fileName)));
+        }
+    }
+
+    public function getTypeAttribute(){
+        try{
+            if(file_exists($this->file_path)){
+                return mime_content_type($this->file_path);
+            }
+        } catch(Exception $ex){
+            return "";
         }
     }
 }

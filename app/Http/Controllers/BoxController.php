@@ -83,19 +83,21 @@ class BoxController extends Controller
     public function update(BoxRequest $request, Box $box)
     {
         $data = $request->validated();
-        $files = $request->file('content_list');
-
+        $files = $request->content_list;
+        $contents = [];
         if($request->hasFile('content_list'))
         {
             foreach ($files as $key => $file) {
-                Content::savefile($data, $key, 'content_list', 'public/boxes/files/', $file);
+                $data = Content::savefile($data, $key, 'content_list', 'public/boxes/files/', $file);
+                $content = Content::create(['file_path' => $data['content_list'][$key], 'box_id' => $box->id]);
+                $contents[$key] = $content;
                 unset($data['content_list'][$key]);
             }
         }
-
         $box->update($data);
-
-        return redirect()->back()->with('success',true);
+        if(!empty($contents)){
+            return view('admin.contents.content', compact('contents'));
+        }
     }
 
     /**
