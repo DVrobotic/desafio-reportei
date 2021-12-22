@@ -18,9 +18,13 @@
                             </div>
                         </div>
                         <div class="card-footer p-1">
-                            <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-left btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
+                            @can('delete', $box)
+                                @if(Route::is('boxes.edit'))
+                                    <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-left btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
+                                    <button class="btn btn-outline-warning float-right btn-sm border-0 rounded-circle"><i class="text-dark far fa-star"></i></button>
+                                @endif
+                            @endcan
                             <button class="btn btn-outline-primary float-right btn-sm border-0 rounded-circle"><i class="fas fa-download"></i></button>
-                            <button class="btn btn-outline-warning float-right btn-sm border-0 rounded-circle"><i class="text-dark far fa-star"></i></button>
                         </div>
                     </div>
                 @endif
@@ -47,9 +51,13 @@
                                 </div>
                             </div>
                             <div class="card-footer p-1">
-                                <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-left btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
+                                @can('delete', $box)
+                                    @if(Route::is('boxes.edit'))
+                                        <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-left btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
+                                        <button class="btn btn-outline-warning float-right btn-sm border-0 rounded-circle"><i class="text-dark far fa-star"></i></button>
+                                    @endif
+                                @endcan
                                 <button class="btn btn-outline-primary float-right btn-sm border-0 rounded-circle"><i class="fas fa-download"></i></button>
-                                <button class="btn btn-outline-warning float-right btn-sm border-0 rounded-circle"><i class="text-dark far fa-star"></i></button>
                             </div>
                         </div>
                     @endif
@@ -76,9 +84,13 @@
                                 </div>
                             </div>
                             <div class="card-footer p-1">
-                                <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-left btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
+                                @can('delete', $box)
+                                    @if(Route::is('boxes.edit'))
+                                        <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-left btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
+                                        <button class="btn btn-outline-warning float-right btn-sm border-0 rounded-circle"><i class="text-dark far fa-star"></i></button>
+                                    @endif
+                                @endcan
                                 <button class="btn btn-outline-primary float-right btn-sm border-0 rounded-circle"><i class="fas fa-download"></i></button>
-                                <button class="btn btn-outline-warning float-right btn-sm border-0 rounded-circle"><i class="text-dark far fa-star"></i></button>
                             </div>
                         </div>
                     @endif
@@ -102,7 +114,11 @@
                             <li class="list-group-item deletable">
                                 <i class="text-primary fas fa-file-alt ml-3"></i>  
                                 Documento 
-                                <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-right btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
+                                @can('delete', $box)
+                                    @if(Route::is('boxes.edit'))
+                                        <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-right btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
+                                    @endif
+                                @endcan
                                 <button class="btn btn-outline-primary float-right btn-sm border-0 rounded-circle"><i class="fas fa-download"></i></button>
                             </li>
                         @endif
@@ -126,7 +142,11 @@
                         @if(strstr($content->type,'text/csv') || strstr($content->type,'application/vnd.ms-excel') || strstr($content->type,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'))
                             <li class="deletable list-group-item"><i class="text-olive fas fa-file-excel ml-3"></i></i> 
                                 Planilha 
-                                <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-right btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
+                                @can('delete', $box)
+                                    @if(Route::is('boxes.edit'))
+                                        <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-right btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
+                                    @endif
+                                @endcan
                                 <button class="btn btn-outline-primary float-right btn-sm border-0 rounded-circle"><i class="fas fa-download"></i></button>
                             </li>
                         @endif

@@ -32,5 +32,5 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
     Route::get('', [PagesController::class, 'dashboard'])->name('dashboard');
     Route::resource('/users', UserController::class)->names('users');
     Route::resource('/boxes', BoxController::class)->names('boxes');
-    Route::delete('/content/delete', [ContentController::class, 'destroy'])->name('contents.destroy');
+    Route::delete('/content/delete', [ContentController::class, 'destroy'])->name('contents.destroy')->middleware('can:delete,App\Models\Content');
 });

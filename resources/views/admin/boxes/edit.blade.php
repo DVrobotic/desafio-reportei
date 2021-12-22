@@ -8,11 +8,13 @@
             @include('admin.boxes.form')
         @endslot
         @slot('body')
-            <form class="form-delete" action="{{ route('contents.destroy') }}" method="post">
-                @csrf
-                @method('delete')
-                <input hidden value="" name="content_id" id="content-input">
-            </form>
+            @can('delete', $box)
+                <form class="form-delete" action="{{ route('contents.destroy') }}" method="post">
+                    @csrf
+                    @method('delete')
+                    <input hidden value="" name="content_id" id="content-input">
+                </form>
+            @endcan
         @endslot
     @endcomponent
 @endsection

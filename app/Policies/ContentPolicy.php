@@ -64,7 +64,7 @@ class ContentPolicy
      * @param  \App\Models\Content  $content
      * @return mixed
      */
-    public function delete(User $user, Content $content)
+    public function delete(User $user)
     {
         return Gate::allows("user-admin");
     }

@@ -29,4 +29,19 @@ class BoxRequest extends FormRequest
             'content_list.*' => 'file|mimes:jpeg,png,bmp,svg,webp,doc,rtf,docx,pdf,csv,xls,xlsx,gif,ico,mp3,mp4,mov,ogg,qt,weba,webp,mpeg|max:50000',
         ];
     }
+
+    public function attributes(){
+        return [
+            'name' => "nome",
+            'content_list' => "Arquivos",
+            'content_list.*' => "Arquivo"
+
+        ];
+    }
+
+    public function messages(){
+        return [
+            'content_list.*.mimes' => "Tipo de :attribute inválido!",
+        ];
+    }
 }
