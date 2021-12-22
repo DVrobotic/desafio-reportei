@@ -31,11 +31,28 @@
                         var sheets = $(data).closest('.sheet-list');
 
                         $('#img-body').append(imgs);
-                        $('#imageCollapse').collapse();
                         $('#video-body').append(videos);
-                        $('#pdf-body').append(videos);
-                        $('#pdf-ul-list').append(pdfs);
+                        $('#pdf-body').append(pdfs);
+                        $('#pdf-ul-list').append(docs);
                         $('#sheet-ul-list').append(sheets);
+
+                        console.log(pdfs);
+
+                        if(imgs.length > 0){
+                            $('#imageCollapse').collapse();
+                        }
+                        if(videos.length > 0){
+                            $('#videoCollapse').collapse();
+                        }
+                        if(pdfs.length > 0){
+                            $('#pdfCollapse').collapse();
+                        }
+                        if(docs.length > 0){
+                            $('#docCollapse').collapse();
+                        }
+                        if(sheets.length > 0){
+                            $('#sheetCollapse').collapse();
+                        }
                     }
         
                     if(!reloading){
