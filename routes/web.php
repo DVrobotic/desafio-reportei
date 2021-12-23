@@ -22,6 +22,11 @@ Auth::routes();
 //rota redirecionando para login
 Route::get('', [PagesController::class, 'home'])->name('home');
 
+Route::middleware(['auth'])->group(function(){
+    // Rotas logadas
+    Route::get('dashboard', [PagesController::class, 'dashboard'])->name('dashboard');
+});
+
 // Rotas logadas no sistema
 Route::prefix('admin')->middleware(['auth'])->group(function () {
     

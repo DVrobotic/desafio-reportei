@@ -1,5 +1,5 @@
 @if ($card != '' || !($createFirst ?? true) || request('search') || request('year'))
-<div class="card">
+<div class="card" style="max-width:2050px">
     <div class="card-header card-outline cor-backend">
         <h3 class="float-left m-0 table-title">{{ $title ?? null }}</h3>
         <div class="float-right mr-2">
@@ -19,13 +19,13 @@
     <div class="card-body table-responsive">
         <form id="research">
             <div class="row">
-                <div class="col-sm-10 col-md-4 mt-1">
+                <div class="col-sm-5 col-10 mx-2">
                     <input type="search" class="form-control d-inline-block" id="search" placeholder="Pesquisar" name="search" value="{{request('search')}}">
                 </div>
                 <button type="submit" form="research" class="btn btn-secondary d-inline-block"><i class="fas fa-search"></i></button>
             </div>
         </form>
-        <div class="row mt-4">
+        <div class="row mt-4 d-flex justify-content-center">
             {{ $card ?? null}}
         </div>
         {{ $footer ?? null }}

@@ -33,10 +33,7 @@
             @endforeach
         @endslot
         @slot('footer')
-            <span class="mt-4">Mostrando de {{ $boxes->firstItem() }} até {{ $boxes->lastItem() }} de {{ $boxes->total() }} registros</span>
-            <span class="float-right mt-2">
-                    {{ $boxes->links() }}
-            </span>
+           
         @endslot
     @endcomponent
 @endsection

@@ -20,11 +20,10 @@ class BoxController extends Controller
     {
         if($request->search != null){
             $boxes = Box::where('name', $request->search)
-            ->orWhere('name', 'like', '%' . $request->search . '%')->paginate(20);
+            ->orWhere('name', 'like', '%' . $request->search . '%')->paginate(6);
         } else{
-            $boxes = Box::paginate(20);
+            $boxes = Box::paginate(6);
         }
-
         return view('admin.boxes.index', compact('boxes'));
     }
 
