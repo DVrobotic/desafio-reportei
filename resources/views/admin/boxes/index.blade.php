@@ -14,11 +14,11 @@
                             <h3 class="profile-username text-center my-auto text-truncate">{{ $box->name }}</h3>
                         </div>
                         <div class="card-footer options text-center">
-                            @can('view', $box)
-                                <a href="{{ route('boxes.show', $box->id) }}" class="btn btn-dark"><i class="fas fa-search"></i></a>
-                            @endcan
                             @can('update', $box)
-                                <a href="{{ route('boxes.edit', $box->id) }}" class="btn btn-primary"><i class="fas fa-pen"></i></a>
+                                <a href="{{ route('boxes.edit', $box->id) }}" class="btn btn-success"><i class="fas fa-pen"></i></a>
+                            @endcan
+                            @can('view', $box)
+                                <a href="{{ route('boxes.show', $box->id) }}" class="btn btn-primary"><i class="fas fa-eye"></i></a>
                             @endcan
                             @can('delete', $box)
                                 <form class="form-delete" action="{{ route('boxes.destroy', $box->id) }}" method="post">
