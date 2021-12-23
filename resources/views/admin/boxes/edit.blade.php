@@ -2,7 +2,12 @@
 
 @section('content')
     @component('admin.components.edit')
-        @slot('title', 'Editar Content Box')
+        @slot('title')
+        Editar Content Box 
+        <span class="mx-1" data-toggle="popover">
+            <i class="far fa-question-circle text-navy"></i>
+        </span>
+        @endslot
         @slot('url', route('boxes.update', $box->id))
         @slot('load', true)
         @slot('form')
@@ -36,6 +41,16 @@
     <script>
         $(document).ajaxWatch('#form-delete', true);
         $(document).ajaxWatch('#form-banner');
+        $(document).ready(function(){
+            $('[data-toggle="popover"]').popover({
+                placement : 'right',
+                trigger : 'hover',
+                html : true,
+                content : '<i class="text-danger fas fa-trash-alt"></i> Exclue um arquivo <br>' +
+                          '<i class="far fa-star"></i> Faça uma imagem o banner de sua Box <br>' +
+                          '<i class="text-primary fas fa-download"></i> Para fazer download de um arquivo',
+            });
+        });
 
         $(document).on('click', '.button-delete', function(){
             $('#content-input').attr('value', $(this).attr('data-id'));

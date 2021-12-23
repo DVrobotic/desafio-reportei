@@ -3,7 +3,7 @@
       <div class="card-header text-left" id="headingImage">
         <h5 class="mb-0">
           <button type="button" class="btn btn-link collapsed" data-toggle="collapse" data-target="#imageCollapse" aria-expanded="false" aria-controls="imageCollapse">
-                Imagens
+               Imagens
           </button>
         </h5>
       </div>
@@ -40,7 +40,7 @@
         <div class="card-header text-left" id="headingVideo">
             <h5 class="mb-0">
                 <button type="button" class="btn btn-link collapsed" data-toggle="collapse" data-target="#videoCollapse" aria-expanded="false" aria-controls="videoCollapse">
-                        Videos
+                    Videos
                 </button>
             </h5>
         </div>
