@@ -56,7 +56,6 @@
         <script>
             $(document).ajaxWatch('.ajaxWatch', true, function(){
                 $(".ajaxWatch").closest('.deletable').slice(0).remove();
-                console.log($(".ajaxWatch").closest('.deletable'));
             });
         </script>
         @stack('scripts')

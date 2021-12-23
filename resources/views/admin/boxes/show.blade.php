@@ -24,7 +24,6 @@
         $('.form-control').attr('disabled', true);
 
         $(document).on('click', '.button-download', function(){
-            console.log( $(this).attr('data-id'));
             $('#download-input').attr('value', $(this).attr('data-id'));
             $('#form-download').submit();
         });

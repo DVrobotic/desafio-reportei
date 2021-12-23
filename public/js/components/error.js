@@ -7,7 +7,7 @@ $(document).ready(function () {
 window.ApplyError = function(field_name, field_error){
   for (var prop in errors) {
     var $el = $('*[name="' + prop + '"]').first();
-    console.log(errors[prop]);
+    //console.log(errors[prop]);
     $el.addClass('is-invalid popover-dismiss');
     //$el.after('<span class="text-danger" role="alert"><small>' + errors[prop][0] + '</small></span>');
     $el.attr('data-placement', "top");

@@ -38,7 +38,7 @@
 
 @push('scripts')
     <script src="{{ asset('js/components/ajaxWatch.js') }}"></script>
-    <script   script src="{{ asset('js/components/ajaxFile.js') }}"></script>
+    <script src="{{ asset('js/components/ajaxFile.js') }}"></script>
     
     <script>
         
