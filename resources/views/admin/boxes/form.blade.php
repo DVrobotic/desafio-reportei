@@ -29,7 +29,6 @@
 </div>
 
 @push('scripts')
-    <script src="{{ asset('js/components/previewImage.js') }}"></script>
     <script src="{{ asset('js/components/ajaxFile.js') }}"></script>
     @if(Route::is('boxes.edit'))
         <script>

@@ -19,18 +19,23 @@ use App\Http\Controllers\ContentController;
 
 Auth::routes();
 
+//rota redirecionando para login
 Route::get('', [PagesController::class, 'home'])->name('home');
 
-Route::middleware(['auth', 'verified'])->group(function(){
-    // Rotas logadas
-    Route::get('dashboard', [PagesController::class, 'dashboard'])->name('dashboard');
-});
-
-Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
-    // Rotas logadas no sistema
+// Rotas logadas no sistema
+Route::prefix('admin')->middleware(['auth'])->group(function () {
+    
+    //general routes
     Route::get('', [PagesController::class, 'dashboard'])->name('dashboard');
+
+    //users
     Route::resource('/users', UserController::class)->names('users');
+
+    //boxes
+    Route::post('/boxes/banner', [BoxController::class, 'changeBanner'])->name('boxes.banner')->middleware('can:create,App\Models\Box');;
     Route::resource('/boxes', BoxController::class)->names('boxes');
+
+    //content
     Route::delete('/content/delete', [ContentController::class, 'destroy'])->name('contents.destroy')->middleware('can:delete,App\Models\Content');
     Route::post('/content/download/', [ContentController::class, 'downloadFile'])->name('contents.download');
 });

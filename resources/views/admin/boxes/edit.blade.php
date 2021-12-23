@@ -19,6 +19,12 @@
                     @method('post')
                     <input hidden value="" name="content_id" id="download-input">
                 </form>
+                <form id="form-banner" action="{{ route('boxes.banner') }}" method="post" enctype="multipart/form-data">
+                    @csrf
+                    @method('post')
+                    <input hidden value="" name="content_id" id="banner-content-input">
+                    <input hidden value="" name="box_id" id="banner-box-input">
+                </form>
             @endcan
         @endslot
     @endcomponent
@@ -28,6 +34,7 @@
     <script src="{{ asset('js/components/ajaxWatch.js') }}"></script>
     <script>
         $(document).ajaxWatch('#form-delete', true);
+        $(document).ajaxWatch('#form-banner');
 
         $(document).on('click', '.button-delete', function(){
             $('#content-input').attr('value', $(this).attr('data-id'));
@@ -36,10 +43,45 @@
         });
 
         $(document).on('click', '.button-download', function(){
-            console.log( $(this).attr('data-id'));
             $('#download-input').attr('value', $(this).attr('data-id'));
             $('#form-download').submit();
         });
+
+        $(document).on('click', '.button-banner', function(){
+            $('#banner-content-input').attr('value', $(this).attr('data-content-id'));
+            $('#banner-box-input').attr('value', $(this).attr('data-box-id'));
+            
+            if($(this).hasClass('bg-transparent')){
+                emptyStar('.button-banner');
+            } else{
+                emptyStar('.button-banner');
+                fullStar(this);
+            }
+            
+            $('#form-banner').submit();
+        });
+
+
+        function fullStar(element){
+            $(element).find('.icon-banner').removeClass('far fa-star');
+            $(element).find('.icon-banner').removeClass('text-dark');
+
+            $(element).find('.icon-banner').addClass('fas fa-star');
+            $(element).find('.icon-banner').addClass('text-warning');
+
+            $(element).addClass('bg-transparent');
+        }
+
+        function emptyStar(element){
+            $(element).find('.icon-banner').removeClass('fas fa-star');
+            $(element).find('.icon-banner').removeClass('text-warning');
+            
+            $(element).find('.icon-banner').addClass('far fa-star');
+            $(element).find('.icon-banner').addClass('text-dark');
+
+            $(element).removeClass('bg-transparent');
+        }
+
     </script>
 @endpush
 

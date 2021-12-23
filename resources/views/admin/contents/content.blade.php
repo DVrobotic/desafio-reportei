@@ -21,7 +21,11 @@
                             @can('delete', $content)
                                 @if(Route::is('boxes.edit'))
                                     <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-left btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
-                                    <button class="btn btn-outline-warning float-right btn-sm border-0 rounded-circle"><i class="text-dark far fa-star"></i></button>
+                                    <button type="button" data-content-id="{{ $content->id }}" data-box-id="{{ $box->id }}" type="button" 
+                                        class="{{ $box->banner != null && $box->banner->id == $content->id ? 'bg-transparent' : '' }} 
+                                                button-banner btn btn-outline-warning float-right btn-sm border-0 rounded-circle">
+                                        <i class="icon-banner {{ $box->banner != null && $box->banner->id == $content->id ? 'text-warning fas fa-star' : 'text-dark far fa-star' }}"></i>
+                                    </button>
                                 @endif
                             @endcan
                             <button type="button" data-id="{{ $content->id }}" class="button-download btn btn-outline-primary float-right btn-sm border-0 rounded-circle"><i class="fas fa-download"></i></button>
@@ -54,7 +58,6 @@
                                 @can('delete', $content)
                                     @if(Route::is('boxes.edit'))
                                         <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-left btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
-                                        <button class="btn btn-outline-warning float-right btn-sm border-0 rounded-circle"><i class="text-dark far fa-star"></i></button>
                                     @endif
                                 @endcan
                                 <button type="button" data-id="{{ $content->id }}" class="button-download btn btn-outline-primary float-right btn-sm border-0 rounded-circle"><i class="fas fa-download"></i></button>
@@ -87,7 +90,6 @@
                                 @can('delete', $content)
                                     @if(Route::is('boxes.edit'))
                                         <button data-id="{{ $content->id }}" type="button" class="button-delete btn btn-outline-danger float-left btn-sm border-0 rounded-circle"><i class="fas fa-trash-alt"></i></button>
-                                        <button class="btn btn-outline-warning float-right btn-sm border-0 rounded-circle"><i class="text-dark far fa-star"></i></button>
                                     @endif
                                 @endcan
                                 <button type="button" data-id="{{ $content->id }}" class="button-download btn btn-outline-primary float-right btn-sm border-0 rounded-circle"><i class="fas fa-download"></i></button>

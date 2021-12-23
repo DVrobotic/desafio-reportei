@@ -7,6 +7,7 @@ use App\Models\Content;
 use Illuminate\Http\Request;
 use App\Http\Requests\BoxSearchRequest;
 use App\Http\Requests\BoxRequest;
+use App\Http\Requests\BoxBannerRequest;
 
 class BoxController extends Controller
 {
@@ -96,7 +97,7 @@ class BoxController extends Controller
         }
         $box->update($data);
         if(!empty($contents)){
-            return view('admin.contents.contentAjax', compact('contents'));
+            return view('admin.contents.contentAjax', compact('contents', 'box'));
         }
     }
 
@@ -114,5 +115,18 @@ class BoxController extends Controller
 
         $box->delete();
         return redirect()->route('boxes.index')->with('success',true);
+    }
+
+    public function changeBanner(BoxBannerRequest $request){
+        $box = Box::where('id', $request->box_id)->first();
+        $content = Content::where('id', $request->content_id)->first();
+
+        if($box->banner != null && $box->banner->id == $request->content_id){
+            $box->banner()->dissociate();
+        } else{
+            $box->banner()->associate($content);
+        }
+        
+        $box->save();
     }
 }

@@ -12,7 +12,7 @@ class Box extends Model
     protected $fillable = ["id", "name"];
 
     public function banner(){
-        return $this->belongsTo(Contnet::class, 'content_id');
+        return $this->belongsTo(Content::class, 'content_id');
     }
 
     public function contents(){
