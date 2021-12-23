@@ -7,28 +7,26 @@
         @slot('model', App\Models\Box::class)
         @slot('card')
             @foreach($boxes as $box)
-                <div class="col-md-4 mt-2 deletable">
-                    <div class="card card-primary card-outline">
-                        <div class="card-body box-profile">
-                            
-                            <h3 class="profile-username text-center">{{ $box->name }}</h3>
-                            <ul class="list-group list-group-unbordered mb-3">
-                            </ul>
-                            <div class="options text-center">
-                                @can('view', $box)
-                                    <a href="{{ route('boxes.show', $box->id) }}" class="btn btn-dark"><i class="fas fa-search"></i></a>
-                                @endcan
-                                @can('update', $box)
-                                    <a href="{{ route('boxes.edit', $box->id) }}" class="btn btn-primary"><i class="fas fa-pen"></i></a>
-                                @endcan
-                                @can('delete', $box)
-                                    <form class="form-delete" action="{{ route('boxes.destroy', $box->id) }}" method="post">
-                                        @csrf
-                                        @method('delete')
-                                        <button type="submit" class="btn btn-danger "><i class="fas fa-trash"></i></button>
-                                    </form>
-                                @endcan
-                            </div>
+                <div class="mx-3 mt-2 deletable">
+                    <div class="card card-primary card-outline border-right" style="width:300px; border-right: 2px;">
+                        <img load="lazy" class="card-img-top mx-auto" style="height:300px; width:298px" src="{{ asset($box->bannerView ?? '') }}" alt="">
+                        <div class="card-header">
+                            <h3 class="profile-username text-center my-auto text-truncate">{{ $box->name }}</h3>
+                        </div>
+                        <div class="card-footer options text-center">
+                            @can('view', $box)
+                                <a href="{{ route('boxes.show', $box->id) }}" class="btn btn-dark"><i class="fas fa-search"></i></a>
+                            @endcan
+                            @can('update', $box)
+                                <a href="{{ route('boxes.edit', $box->id) }}" class="btn btn-primary"><i class="fas fa-pen"></i></a>
+                            @endcan
+                            @can('delete', $box)
+                                <form class="form-delete" action="{{ route('boxes.destroy', $box->id) }}" method="post">
+                                    @csrf
+                                    @method('delete')
+                                    <button type="submit" class="btn btn-danger "><i class="fas fa-trash"></i></button>
+                                </form>
+                            @endcan
                         </div>
                     </div>
                 </div>

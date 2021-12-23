@@ -16,7 +16,7 @@
             @endif
         </div>
     </div>
-    <div class="card-body table-responsive ">
+    <div class="card-body table-responsive">
         <form id="research">
             <div class="row">
                 <div class="col-sm-10 col-md-4 mt-1">
