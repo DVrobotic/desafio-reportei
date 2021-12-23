@@ -12,7 +12,13 @@
             {{$body ?? null }}
         </div>
         <div class="card-footer">
-            <button type="submit" form="form-adicionar" class="btn btn-dark float-right">{{$button_name ?? 'Salvar Alterações'}}</button>
+            <button id="{{ isset($load) ?  'load-save-button' : '' }}" type="submit" form="form-adicionar" class="btn btn-dark float-right">{{$button_name ?? 'Salvar Alterações'}}</button>
+            @if(isset($load))
+                <button id="loading" class="d-none btn btn-dark float-right" type="button" disabled>
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Carregando...
+                </button>
+            @endif
             {{ $voltar ?? null }}
         </div>
     </div>

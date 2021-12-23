@@ -105,20 +105,26 @@
                         }, false);
                     } // Custom XMLHttpRequest
                     return myXhr;
+                },
+
+                beforeSend: function() { 
+                    console.log($('#loading'));
+                    $('#loading').removeClass('d-none'); 
+                    $('#load-save-button').addClass('d-none'); 
+                },
+
+                complete: function(){
+                    console.log($('#loading'));
+                    $('#loading').addClass('d-none'); 
+                    $('#load-save-button').removeClass('d-none'); 
                 }
+
             }).done(function(){
                 
                 if(funcAction != null){
                     funcAction(form);
                 }
                 
-
-                if($('#loading').hasClass('d-none')){
-                    $('#loading').removeClass('d-none');
-                    setTimeout(function(){
-                        $('#loading').addClass('d-none');
-                    }, 1000);
-                }
             });
         });
        return this;
