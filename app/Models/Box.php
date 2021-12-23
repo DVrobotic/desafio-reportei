@@ -24,7 +24,7 @@ class Box extends Model
     }
 
     public function getBannerViewAttribute(){
-        if($this->banner != null){
+        if($this->banner != null && file_exists($this->banner->file_path)){
             return $this->banner->file_path;
         }
         return static::defaultBanner();
