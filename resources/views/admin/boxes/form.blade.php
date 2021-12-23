@@ -27,13 +27,3 @@
         @endif
     @endif
 </div>
-
-@push('scripts')
-    <script src="{{ asset('js/components/ajaxFile.js') }}"></script>
-    @if(Route::is('boxes.edit'))
-        <script>
-            $(document).ajaxFile('#form-adicionar', true, null, true, true);
-        </script>
-    @endif
-@endpush
-

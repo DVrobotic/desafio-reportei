@@ -2,6 +2,9 @@
     @if(strstr($content->type,'image/'))
         <div class="mb-5 deletable img-card card card-dark card-outline border-left-0 border-right-0 border-bottom-0 col-md-5 col-12 d-inline-block mx-3 my-3 p-0 align-top" style="max-height:410px; max-width:410px">
             <div class="card-body m-0 p-0">
+                <div class="card-header border-right border-left border-bottom-0">
+                    {{ $content->name }}
+                </div>
                 <div class="text-center w-100 m-0 p-0">
                     <img load="lazy" class="img-fluid m-0 p-0" style="max-height:400px; max-width:400px" src="{{ asset($content->file_path) }}" alt="Imagem não encontrada!">
                 </div>

@@ -38,7 +38,14 @@
 
 @push('scripts')
     <script src="{{ asset('js/components/ajaxWatch.js') }}"></script>
+    <script   script src="{{ asset('js/components/ajaxFile.js') }}"></script>
+    
     <script>
+        
+        @if(Route::is('boxes.edit'))
+            $(document).ajaxFile('#form-adicionar', true, null, true, true);
+        @endif
+
         $(document).ajaxWatch('#form-delete', true);
         $(document).ajaxWatch('#form-banner');
         $(document).ready(function(){

@@ -88,10 +88,11 @@ class BoxController extends Controller
         if($request->hasFile('content_list'))
         {
             foreach ($files as $key => $file) {
-                $data = Content::savefile($data, $key, 'content_list', 'public/boxes/files/', $file);
-                $content = Content::create(['file_path' => $data['content_list'][$key], 'box_id' => $box->id]);
+                $data = Content::savefile($data, $key, 'content_list', 'public/boxes/files/', 'content_name');
+                $content = Content::create(['file_path' => $data['content_list'][$key], 'box_id' => $box->id, 'name' => $data['content_name'][$key]]);
                 $contents[$key] = $content;
                 unset($data['content_list'][$key]);
+                unset($data['content_name'][$key]);
             }
         }
         $box->update($data);

@@ -12,20 +12,21 @@ class Content extends Model
     public $table = "contents";
     protected $primaryKey = "id";
 
-    protected $fillable = ['file_path', 'box_id'];
+    protected $fillable = ['file_path', 'box_id', 'name'];
 
     public function box(){
         return $this->belongsTo(Box::class, 'box_id');
     }
 
-    public static function saveFile($data, $key, $name, $diretorio, $oldFile = '') {
+    public static function saveFile($data, $key, $name, $diretorio, $altName = '', $oldFile = '') {
         
         if(isset($data[$name][$key]) && is_file($data[$name][$key])){
             $fileName = $data[$name][$key]->getClientOriginalName();
-            $fileName = hash('sha256', $fileName . strval(time())) . '.' . $data[$name][$key]->getClientOriginalExtension();
+            $fileNameHash = hash('sha256', $fileName . strval(time())) . '.' . $data[$name][$key]->getClientOriginalExtension();
             static::deleteFile($oldFile, $diretorio);
-            $data[$name][$key]->storeAs($diretorio, $fileName);
-            $data[$name][$key] = "storage/boxes/files/" . $fileName;
+            $data[$name][$key]->storeAs($diretorio, $fileNameHash);
+            $data[$name][$key] = "storage/boxes/files/" . $fileNameHash;
+            $data[$altName][$key] = substr($fileName, 0, strrpos($fileName, "."));;
         }else{
             unset($data[$name][$key]);
         }

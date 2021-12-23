@@ -19,6 +19,6 @@ class PagesController extends Controller
     }
     public function dashboard()
     {
-        return view('admin.users.index');
+        return redirect()->route('users.index');
     }
 }
