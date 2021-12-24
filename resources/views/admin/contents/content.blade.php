@@ -3,12 +3,12 @@
     <div class="card mb-0">
       <div class="card-header text-left" id="headingImage">
         <h5 class="mb-0">
-          <button type="button" class="btn btn-link collapsed" data-toggle="collapse" data-target="#imageCollapse" aria-expanded="false" aria-controls="imageCollapse">
+          <button type="button" class="btn btn-link collapsed show" data-toggle="collapse" data-target="#imageCollapse" aria-expanded="false" aria-controls="imageCollapse">
                Imagens
           </button>
         </h5>
       </div>
-      <div id="imageCollapse" class="collapse" aria-labelledby="headingOne" data-parent="#contents">
+      <div id="imageCollapse" class="collapse show" aria-labelledby="headingOne" data-parent="#contents">
         <div class="card-body mb-5" id="img-body">
             @foreach($contents as $content)
                 @if(strstr($content->type,'image/'))

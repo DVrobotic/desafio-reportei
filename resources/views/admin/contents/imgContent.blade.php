@@ -1,4 +1,4 @@
-<div class="deletable img-card card card-dark card-outline border-left-0 border-right-0 border-bottom-0 col-md-5 col-8 d-inline-block mx-3 my-3 p-1 align-top" style="max-width:400px">
+<div class="deletable img-card card card-dark card-outline border-left-0 border-right-0 border-bottom-0 col-md-5 col-8 d-inline-block mx-3 mb-3 p-1 align-top" style="max-width:400px">
     <div style="max-width:400.2px" class="mx-auto card-header border-right border-left border-bottom-0">
         {{ $content->name }}
     </div>
