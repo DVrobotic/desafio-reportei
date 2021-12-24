@@ -19,6 +19,6 @@ class PagesController extends Controller
     }
     public function dashboard()
     {
-        return redirect()->route('users.index');
+        return redirect()->route('boxes.index');
     }
 }
