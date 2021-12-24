@@ -28,6 +28,8 @@ return [
 
     'env' => env('APP_ENV', 'production'),
 
+    'key' => env('APP_KEY', 'base64:iAzVXQxhVOhOoF2xUH/m2qY2i8qepGbOUqf6XUPHrDc='),
+
     /*
     |--------------------------------------------------------------------------
     | Application Debug Mode
