@@ -32,7 +32,7 @@ class ContentController extends Controller
         $file = storage_path(str_replace('storage', 'app/public', $content->file_path));
 
         if(file_exists($file)){
-            return Response::download($file, 'content.' . $extension);
+            return Response::download($file, $content->name . '.' . $extension);
         }
 
         return redirect()->back();
