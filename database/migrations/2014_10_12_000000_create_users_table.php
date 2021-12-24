@@ -18,7 +18,7 @@ class CreateUsersTable extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->date('dateBirth');
-            $table->string('profile_path')->nullable();
+            $table->string('profile_path')->default("storage/img/profile/profile_default.png");
             $table->string('password');
             $table->unsignedBigInteger('role_id')->nullable();
             $table->rememberToken();
