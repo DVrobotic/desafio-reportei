@@ -50,4 +50,19 @@ class Content extends Model
         }
     }
 
+    public function isUsualTypes(){
+        try{
+            if(file_exists($this->file_path)){
+                return !strstr($this->type,'text/csv') && !strstr($this->type,'image/') &&
+                !strstr($this->type,'video/') && !strstr($this->type, 'pdf') &&
+                !strstr($this->type,'text/rtf') && !strstr($this->type,'application/msword') && 
+                !strstr($this->type,'application/vnd.openxmlformats-officedocument.wordprocessingml.document') &&
+                !strstr($this->type,'text/csv') && !strstr($this->type,'application/vnd.ms-excel') && 
+                !strstr($this->type,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            }
+        } catch(Exception $ex){
+            return "";
+        }
+    }
+
 }

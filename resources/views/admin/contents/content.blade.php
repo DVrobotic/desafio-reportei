@@ -94,4 +94,24 @@
             </div>
         </div>
     </div>
+    <div class="card mb-0">
+        <div class="card-header text-left" id="headingPdf">
+            <h5 class="mb-0">
+                <button type="button" class="btn btn-link collapsed" data-toggle="collapse" data-target="#unusualCollapse" aria-expanded="false" aria-controls="sheetCollapse">
+                    Outros
+                </button>
+            </h5>
+        </div>
+        <div id="unusualCollapse" class="collapse" aria-labelledby="headingUnusuals" data-parent="#contents">
+            <div class="card-body">
+                <ul id="unusual-ul-list" class="list-group list-group-unbordered mb-3 text-left">
+                    @foreach($contents as $content)
+                        @if($content->isUsualTypes())
+                            @include('admin.contents.unusualContent', ['content' => $content, 'box' => $box])
+                        @endif
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>

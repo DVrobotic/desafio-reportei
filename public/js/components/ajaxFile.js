@@ -29,12 +29,16 @@
                         var pdfs = $(data).closest('.pdf-card');
                         var docs = $(data).closest('.doc-list');
                         var sheets = $(data).closest('.sheet-list');
+                        var unusuals = $(data).closest('.unusual-list');
 
                         $('#img-body').append(imgs);
                         $('#video-body').append(videos);
                         $('#pdf-body').append(pdfs);
                         $('#doc-ul-list').append(docs);
                         $('#sheet-ul-list').append(sheets);
+                        $('#unusual-ul-list').append(unusuals);
+
+                        console.log(unusuals, $('#unusual-ul-list'));
 
                         if(imgs.length > 0){
                             $('#imageCollapse').collapse();
@@ -55,6 +59,10 @@
                         if(sheets.length > 0){
                             $('#sheetCollapse').collapse();
                             $('#sheetCollapse').addClass('show');
+                        }
+                        if(unusuals.length > 0){
+                            $('#unusualCollapse').collapse();
+                            $('#unusualCollapse').addClass('show');
                         }
                     }
         

@@ -23,4 +23,9 @@
         @include('admin.contents.sheetContent', ['content' => $content, 'box' => $box, 'ajax' => $ajax])
     @endif
 @endforeach
+@foreach($contents as $content)
+    @if($content->isUsualTypes())
+        @include('admin.contents.unusualContent', ['content' => $content, 'box' => $box])
+    @endif
+@endforeach
       
