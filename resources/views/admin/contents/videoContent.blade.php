@@ -1,4 +1,4 @@
-<div class="mb-5 mx-auto video-card deletable card card-dark card-outline border-left-0 border-right-0 border-bottom-0 col-md-5 col-12 d-inline-block mx-3 my-3 p-0 align-top" style="max-width:810px; max-height:440px">
+<div class="mb-5 mx-4 video-card deletable card card-dark card-outline border-left-0 border-right-0 border-bottom-0 col-md-5 col-12 d-inline-block mx-3 my-3 p-0 align-top" style="max-width:810px;">
     <div style="max-width:800px" class="mx-auto card-header border-right border-left border-bottom-0">
         {{ $content->name }}
     </div>
