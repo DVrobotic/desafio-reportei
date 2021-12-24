@@ -43,6 +43,7 @@
                     }
 
                 },
+
                 error: function (response){
                    
                     if(validation){
@@ -57,18 +58,21 @@
                         })
                     }
                 },
+
+                // beforeSend: function() { 
+                //     $('#loading').removeClass('d-none'); 
+                //     $('#load-save-button').addClass('d-none'); 
+                // },
+
+                // complete: function(){
+                //     $('#loading').addClass('d-none'); 
+                //     $('#load-save-button').removeClass('d-none'); 
+                // },
+
             }).done(function(){
                 
                 if(funcAction != null){
                     funcAction(form);
-                }
-                
-
-                if($('#loading').hasClass('d-none')){
-                    $('#loading').removeClass('d-none');
-                    setTimeout(function(){
-                        $('#loading').addClass('d-none');
-                    }, 1000);
                 }
             });
         });
