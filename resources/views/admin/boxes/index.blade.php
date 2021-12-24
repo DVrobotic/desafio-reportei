@@ -1,5 +1,15 @@
 @extends('admin.layouts.sistema')
 
+@push('styles')
+    <style>
+        .hover-grey:hover {
+            background-color: grey !important;
+            opacity: 0.9;
+            transition: .25s all;
+        }
+    </style>
+@endpush
+
 @section('content')
     @component('admin.components.tableCard')
         @slot('title', 'Content Boxes')
@@ -9,7 +19,11 @@
             @foreach($boxes as $box)
                 <div class="ml-3 mt-2 deletable">
                     <div class="card card-primary card-outline border-right" style="width:300px; border-right: 2px;">
-                        <img load="lazy" class="card-img-top mx-auto" style="height:300px; width:298px" src="{{ asset($box->bannerView ?? '') }}" alt="">
+                        @can('view', $box)
+                            <a class="bg-white hover-grey" href="{{ route('boxes.show', $box->id) }}">
+                                <img load="lazy" class="card-img-top mx-auto hover-grey" style="height:300px; width:298px" src="{{ asset($box->bannerView ?? '') }}" alt="">
+                            </a>
+                        @endcan
                         <div class="card-header">
                             <h3 class="profile-username text-center my-auto text-truncate">{{ $box->name }}</h3>
                         </div>
