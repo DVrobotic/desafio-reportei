@@ -3,7 +3,6 @@
 @push('styles')
     <style>
         .hover-grey:hover {
-            background-color: grey !important;
             opacity: 0.9;
             transition: .25s all;
         }
