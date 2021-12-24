@@ -7,7 +7,7 @@
         @slot('model', App\Models\Box::class)
         @slot('card')
             @foreach($boxes as $box)
-                <div class="mx-3 mt-2 deletable">
+                <div class="ml-3 mt-2 deletable">
                     <div class="card card-primary card-outline border-right" style="width:300px; border-right: 2px;">
                         <img load="lazy" class="card-img-top mx-auto" style="height:300px; width:298px" src="{{ asset($box->bannerView ?? '') }}" alt="">
                         <div class="card-header">
@@ -33,7 +33,10 @@
             @endforeach
         @endslot
         @slot('footer')
-           
+            <span class="mt-5">Mostrando de {{ $boxes->firstItem() }} até {{ $boxes->lastItem() }} de {{ $boxes->total() }} registros</span>
+            <span class="float-right mt-2">
+                    {{ $boxes->links("pagination::bootstrap-4") }}
+            </span>
         @endslot
     @endcomponent
 @endsection

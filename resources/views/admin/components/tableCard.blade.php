@@ -25,10 +25,12 @@
                 <button type="submit" form="research" class="btn btn-secondary d-inline-block"><i class="fas fa-search"></i></button>
             </div>
         </form>
-        <div class="row mt-4 d-flex justify-content-center">
+        <div class="row mt-4 ml-4">
             {{ $card ?? null}}
         </div>
-        {{ $footer ?? null }}
+        <div class="mt-4">
+            {{ $footer ?? null }}
+        </div>
     </div>
 </div>
 @else
