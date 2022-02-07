@@ -25,6 +25,7 @@ class PagesController extends Controller
             $GHrequest = new GitHubApiRequest($request->githubUser['nickname'], $request->githubUser['token'], '/user');
 
             $user_json = json_decode($GHrequest->handle());
+            $organization_url = $user_json->organizations_url;
 
             $GHrequestRepo = new GitHubApiRequest($request->githubUser['nickname'], $request->githubUser['token'], '/user/repos');
             $repo_json = $GHrequestRepo->handle();
@@ -38,8 +39,12 @@ class PagesController extends Controller
             $GHrequestCommit = new GitHubApiRequest($request->githubUser['nickname'], $request->githubUser['token'], $commit_url);
             $single_commit_json = $GHrequestCommit->handle();
             $files = json_decode($single_commit_json)->files;
+            $commit_json = $single_commit_json;
+            $GHrequestOrganization = new GitHubApiRequest($request->githubUser['nickname'], $request->githubUser['token'], '/user/orgs');
+            $organization_json = json_decode($GHrequestOrganization->handle());
+            dd($organization_json);
         }
 
-        return view('admin.dashboard', compact('user_json', 'repo_json', 'commit_url', 'commits_json', 'files'));
+        return view('admin.dashboard', get_defined_vars());
     }
 }

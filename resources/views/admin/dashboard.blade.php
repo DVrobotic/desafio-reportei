@@ -22,4 +22,8 @@
             <p>{{ $file->patch ?? '' }}</p>
         @endforeach
     @endif
+    @if($commit_json ?? false)
+        <h1>Commit</h1>
+        {{ $commit_json ?? '' }}
+    @endif
 @endsection
