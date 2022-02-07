@@ -3,8 +3,23 @@
 @section('title', 'Dashboard')
 
 @section('content')
-    @foreach($files as $file)
-        <h5>{{ $file->filename }}</h5>
-        <p>{{ $file->patch }}</p>
-    @endforeach
+    @if($user_json ?? false)
+        <h1>user</h1>
+        {{ json_encode($user_json) ?? '' }}
+    @endif
+    @if($repo_json ?? false)
+        <h1>repositorio</h1>
+        {{ $repo_json ?? '' }}
+    @endif
+    @if($commits_json ?? false)
+        <h1>commits</h1>
+        {{ $commits_json ?? '' }}
+    @endif
+    @if($files ?? false)
+        <h1>files</h1>
+        @foreach($files as $file)
+            <h5>{{ $file->filename ?? '' }}</h5>
+            <p>{{ $file->patch ?? '' }}</p>
+        @endforeach
+    @endif
 @endsection

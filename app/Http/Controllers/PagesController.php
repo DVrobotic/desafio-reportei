@@ -18,25 +18,28 @@ class PagesController extends Controller
     {
         return view('auth.login');
     }
-    public function dashboard()
+    public function dashboard(Request $request)
     {
-        $GHrequest = new GitHubApiRequest('dvrobotic', '', '/user');
+        $files = [];
+        if($request->githubUser){
+            $GHrequest = new GitHubApiRequest($request->githubUser['nickname'], $request->githubUser['token'], '/user');
 
-        $user_json = json_decode($GHrequest->handle());
+            $user_json = json_decode($GHrequest->handle());
 
-        $GHrequestRepo = new GitHubApiRequest('dvrobotic', '', '/user/repos');
-        $repo_json = $GHrequestRepo->handle();
+            $GHrequestRepo = new GitHubApiRequest($request->githubUser['nickname'], $request->githubUser['token'], '/user/repos');
+            $repo_json = $GHrequestRepo->handle();
 
-        $commits_url = str_replace('{/sha}', '', json_decode($repo_json)[1]->commits_url);
+            $commits_url = str_replace('{/sha}', '', json_decode($repo_json)[2]->commits_url);
 
-        $GHrequestCommits = new GitHubApiRequest('dvrobotic', '', $commits_url);
-        $commits_json = $GHrequestCommits->handle();
-        $commit_url = json_decode($commits_json)[0]->url;
+            $GHrequestCommits = new GitHubApiRequest($request->githubUser['nickname'], $request->githubUser['token'], $commits_url);
+            $commits_json = $GHrequestCommits->handle();
+            $commit_url = json_decode($commits_json)[0]->url;
 
-        $GHrequestCommit = new GitHubApiRequest('dvrobotic', '', $commit_url);
-        $single_commit_json = $GHrequestCommit->handle();
-        $files = json_decode($single_commit_json)->files;
+            $GHrequestCommit = new GitHubApiRequest($request->githubUser['nickname'], $request->githubUser['token'], $commit_url);
+            $single_commit_json = $GHrequestCommit->handle();
+            $files = json_decode($single_commit_json)->files;
+        }
 
-        return view('admin.dashboard', compact('files'));
+        return view('admin.dashboard', compact('user_json', 'repo_json', 'commit_url', 'commits_json', 'files'));
     }
 }

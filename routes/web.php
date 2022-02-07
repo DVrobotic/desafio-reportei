@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PagesController;
@@ -22,6 +23,11 @@ Auth::routes();
 //rota redirecionando para login
 Route::get('', [PagesController::class, 'home'])->name('home');
 
+//github login
+Route::get('/auth/redirect', [LoginController::class, 'githubRedirect'])->name('github.redirect');
+
+Route::get('/auth/callback', [LoginController::class, 'githubLogin'])->name('github.login');
+
 Route::middleware(['auth'])->group(function(){
     // Rotas logadas
     Route::get('dashboard', [PagesController::class, 'dashboard'])->name('dashboard');
@@ -29,9 +35,6 @@ Route::middleware(['auth'])->group(function(){
 
 // Rotas logadas no sistema
 Route::prefix('admin')->middleware(['auth'])->group(function () {
-    
-    //general routes
-    Route::get('', [PagesController::class, 'dashboard'])->name('dashboard');
 
     //users
     Route::resource('/users', UserController::class)->names('users');
