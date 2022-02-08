@@ -66,4 +66,37 @@ class GitHubApiRequest implements ShouldQueue
             echo $e->getResponse();
         }
     }
+
+    public function webhook($owner, $repo)
+    {
+        try {
+            // /repos/{owner}/{repo}/hooks
+            $config =
+            [
+                "url" => 'https://desafio-reportei.codejunior.com.br',
+                "content_type" => "json",
+                "insecure_ssl" => "0",
+            ];
+
+            $response = $this->client->request('POST', htmlspecialchars('/repos/' . $owner . '/' . $repo . '/hooks'),
+                [
+                    'auth' => [$this->data['username'], $this->data['token']],
+                    'accept' => $this->data['accept'],
+                    "name" => "web", //standarized name for webhooks
+                    "active" => true,
+                    "events" =>
+                    [
+                        "push",
+                        "pull_request"
+                    ],
+                    'json' => [
+                        'config' => $config
+                    ]
+                ]
+            );
+
+        } catch (ClientException $e) {
+            echo dd($e->getMessage());
+        }
+    }
 }

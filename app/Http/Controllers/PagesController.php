@@ -32,6 +32,8 @@ class PagesController extends Controller
             $repo_json = $GHrequestRepo->handle();
 
             $commits_url = str_replace('{/sha}', '', json_decode($repo_json)[2]->commits_url);
+            $repo_name = json_decode($repo_json)[1]->name;
+            //$repo_name = json_decode($repo_json)[2]->repo
 
             //acessing a repo commits with minimal information
             $GHrequestCommits = new GitHubApiRequest($request->githubUser['nickname'], $request->githubUser['token'], $commits_url);
@@ -59,11 +61,18 @@ class PagesController extends Controller
 
             //search for specific public repo by owner/name doesnt work for org/name
             $GHrepoTest = new GitHubApiRequest('', '', '/search/repositories?q=roctocat/Hello-World', false);
-            dd(json_decode($GHrepoTest->handle()));
 
             //so its possible to get a repo from a org name, but not a repo from an org even its public
+
+            $webhook = new GitHubApiRequest($request->githubUser['nickname'], $request->githubUser['token'],'');
+            //$webhook_status = $webhook->webhook($request->githubUser['nickname'], $repo_name);
         }
 
+
         return view('admin.dashboard', get_defined_vars());
+    }
+
+    public function payloadHandler(Request $request){
+        dd('test');
     }
 }

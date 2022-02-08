@@ -23,6 +23,8 @@ Auth::routes();
 //rota redirecionando para login
 Route::get('', [PagesController::class, 'home'])->name('home');
 
+route::post('/webhook/payload', [PagesController::class, 'payloadHandler'])->name('webhook.payload');
+
 //github login
 Route::get('/auth/redirect', [LoginController::class, 'githubRedirect'])->name('github.redirect');
 
