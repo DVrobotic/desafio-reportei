@@ -26,4 +26,16 @@
         <h1>Commit</h1>
         {{ $commit_json ?? '' }}
     @endif
+    @if($organizations_json ?? false)
+        <h1>organizations</h1>
+        {{  $organizations_json ?? '' }}
+    @endif
+    @if($json_reportei ?? false)
+        <h1>Reportei - public org</h1>
+        {{ $json_reportei ?? '' }}
+    @endif
+    @if($reportei_repos_json ?? false)
+        <h1>Reportei repos</h1>
+        {{ $reportei_repos_json ?? '' }}
+    @endif
 @endsection
