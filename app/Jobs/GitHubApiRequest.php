@@ -24,14 +24,14 @@ class GitHubApiRequest implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($username, $token, $requestType, $auth = true)
+    public function __construct($username, $token, $requestType, $auth = true, $accept = 'application/vnd.github.v3+json' )
     {
         $this->data['username'] = $username;
         $this->data['token'] = $token;
         $this->data['requestType'] = htmlspecialchars(str_replace(self::URL, '', $requestType));
         $this->data['debug'] = true;
         $this->data['auth'] = $auth;
-        $this->data['accept'] = 'application/vnd.github.v3+json';
+        $this->data['accept'] = $accept;
         $this->client = new Client(['base_uri' => self::URL]);
     }
 
@@ -73,7 +73,7 @@ class GitHubApiRequest implements ShouldQueue
             // /repos/{owner}/{repo}/hooks
             $config =
             [
-                "url" => 'https://desafio-reportei.codejunior.com.br',
+                "url" => 'https://desafio-reportei.codejunior.com.br/user/4',
                 "content_type" => "json",
                 "insecure_ssl" => "0",
             ];
@@ -82,13 +82,9 @@ class GitHubApiRequest implements ShouldQueue
                 [
                     'auth' => [$this->data['username'], $this->data['token']],
                     'accept' => $this->data['accept'],
-                    "name" => "web", //standarized name for webhooks
+                    "name" => "web2", //standarized name for webhooks
                     "active" => true,
-                    "events" =>
-                    [
-                        "push",
-                        "pull_request"
-                    ],
+                    "events" => ["push", "pull_request"],
                     'json' => [
                         'config' => $config
                     ]

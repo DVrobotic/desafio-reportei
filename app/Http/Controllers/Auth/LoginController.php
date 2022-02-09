@@ -50,6 +50,6 @@ class LoginController extends Controller
     }
 
     public function githubRedirect(){
-        return Socialite::driver('github')->scopes(['read:user', 'repo', 'admin:org' , 'admin:repo_hook'])->redirect();
+        return Socialite::driver('github')->scopes(['read:user', 'repo', 'admin:org', 'admin:repo_hook'])->redirect();
     }
 }
