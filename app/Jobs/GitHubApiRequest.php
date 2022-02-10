@@ -19,11 +19,6 @@ class GitHubApiRequest implements ShouldQueue
     protected const URL =  "https://api.github.com";
     protected $client, $data = ['username', 'token', 'requestType', 'auth', 'accept', 'debug'];
 
-    /**
-     * Create a new job instance.
-     *
-     * @return void
-     */
     public function __construct($username, $token, $requestType, $auth = true, $accept = 'application/vnd.github.v3+json' )
     {
         $this->data['username'] = $username;
@@ -35,11 +30,23 @@ class GitHubApiRequest implements ShouldQueue
         $this->client = new Client(['base_uri' => self::URL]);
     }
 
-    /**
-     * Execute the job.
-     *
-     * @return void
-     */
+    public function pulls($owner, $repo, $state = 'open', $query = '', $branch = null){
+        $query .= "state=" . $state . '&';
+        $query .= $branch != null ? ("base=" . $branch . '&') : '';
+        try {
+            $response = $this->client->request('GET', htmlspecialchars('/repos/' . $owner . '/' . $repo . '/pulls?' . $query),
+                [
+                    'auth' => [$this->data['username'], $this->data['token']],
+                    'accept' => $this->data['accept'],
+                    'verify' => true,
+                ]
+            );
+            return $response->getBody();
+        } catch (ClientException $e) {
+            echo dd($e->getMessage());
+        }
+    }
+
     public function handle()
     {
         try {
@@ -59,11 +66,9 @@ class GitHubApiRequest implements ShouldQueue
                     ]
                 );
             }
-
             return $response->getBody();
         } catch (ClientException $e) {
-            echo $e->getRequest();
-            echo $e->getResponse();
+            echo dd($e->getMessage());
         }
     }
 
@@ -78,19 +83,67 @@ class GitHubApiRequest implements ShouldQueue
                 "insecure_ssl" => "0",
             ];
 
+            //events must be together with config on json, grizzle doesnt know very well hot to handle objects or arrays of arrays
             $response = $this->client->request('POST', htmlspecialchars('/repos/' . $owner . '/' . $repo . '/hooks'),
                 [
                     'auth' => [$this->data['username'], $this->data['token']],
                     'accept' => $this->data['accept'],
                     "name" => "web2", //standarized name for webhooks
                     "active" => true,
-                    "events" => ["push", "pull_request"],
                     'json' => [
-                        'config' => $config
+                        'config' => $config,
+                        "events" => ["push", "pull_request"],
                     ]
                 ]
             );
+            return $response->getBody();
 
+        } catch (ClientException $e) {
+            echo dd($e->getMessage());
+        }
+    }
+
+    public function patch($owner, $repo, $hook_id)
+    {
+        try {
+            // /repos/{owner}/{repo}/hooks
+            $config =
+                [
+                    "url" => 'https://desafio-reportei.codejunior.com.br/user/201',
+                    "content_type" => "json",
+                    "insecure_ssl" => "0",
+                ];
+
+            $response = $this->client->request('PATCH', htmlspecialchars('/repos/' . $owner . '/' . $repo . '/hooks/' . $hook_id),
+                [
+                    'auth' => [$this->data['username'], $this->data['token']],
+                    'accept' => $this->data['accept'],
+                    "name" => "web2", //standarized name for webhooks
+                    "active" => true,
+                    'json' => [
+                        'config' => $config,
+                        "events" => ['*'],
+                    ]
+                ]
+            );
+            return $response->getBody();
+
+        } catch (ClientException $e) {
+            echo dd($e->getMessage());
+        }
+    }
+
+    public function delete($owner, $repo, $hook_id)
+    {
+        try {
+            // /repos/{owner}/{repo}/hooks
+            $response = $this->client->request('DELETE', htmlspecialchars('/repos/' . $owner . '/' . $repo . '/hooks/' . $hook_id),
+                [
+                    'auth' => [$this->data['username'], $this->data['token']],
+                    'accept' => $this->data['accept'],
+                ]
+            );
+            return $response->getReasonPhrase();
         } catch (ClientException $e) {
             echo dd($e->getMessage());
         }
