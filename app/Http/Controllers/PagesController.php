@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\GitHubApiRequest;
 use App\Models\PullRequest;
 use Carbon\Carbon;
+use Cassandra\Date;
 use DateInterval;
 use DateTime;
 use Illuminate\Http\Request;
@@ -55,34 +56,49 @@ class PagesController extends Controller
 
         //----------------- general/traffic metrics -----------------------//
 
-        //$metrics = self::traffic($request);
+//        $metrics = self::traffic($request);
+//        dd($metrics);
 
         //-----------------------------------------------------------//
 
         //--------------------- pull requests -----------------------//
 
-        //$pullRequests = self::pullRequests($request);
+//        $pullRequests = self::pullRequests($request);
+//
+//        dd($pullRequests);
 
         //-----------------------------------------------------------//
 
-        //------- calculating average pull request merge time -------//
+        //--------------------- pull requests -----------------------//
 
-        //$time = self::prAverageTime($request);
-//        dd($time);
+//       $pullRequests = self::savePrsToDatabase($request);
+//       dd('teste');
 
         //-----------------------------------------------------------//
 
         //------------------------ teams ---------------------------//
 
-       // $team = self::teams($request);
+//        $team = self::teams($request);
+//        dd($team);
 
         //-----------------------------------------------------------//
 
+        //------- calculating average pull request merge time -------//
+        $lowerLimit = (new DateTime("-10 days  11:59:59pm"));
+        $higherLimit = (new DateTime("-1 days 11:59:59pm"));
+        $time = self::prAverageTime(null, $lowerLimit, $higherLimit);
+        dd($time);
+
+        //-----------------------------------------------------------//
+
+
+
         //-------------------- calculating prs by dev ------------------------//
-        $lowerLimit = (new DateTime("-15 days"));
-        $higherLimit = (new DateTime("today"));
-        $devsContribution = self::devsContribution(null, $lowerLimit, $higherLimit);
-        dd($devsContribution);
+
+//        $lowerLimit = (new DateTime("-30 days"));
+//        $higherLimit = (new DateTime("-1 days"));
+//        $devsContribution = self::devsContribution(null, $lowerLimit, $higherLimit);
+//        dd($devsContribution);
 
         //-----------------------------------------------------------//
 
@@ -95,22 +111,14 @@ class PagesController extends Controller
      * @return \Illuminate\Support\Collection
      */
     public static function devsContribution(?bool $state, DateTime $lowerLimit = null, DateTime  $higherLimit = null){
-        $lowerLimit = $lowerLimit ?? (new DateTime("0000-00-00 00:00:00"));
-        $higherLimit = $higherLimit ?? (new DateTime("now"));
-        $pullQuery = $state != null ? PullRequest::where('open', $state) : PullRequest::where('open', '!=', null);
-        $pullRequests = $pullQuery
-                        ->whereDate('created_at', '>=', $lowerLimit)
-                        ->whereDate('created_at', '<=', $higherLimit)
-                        ->orderBy('owner', 'asc')
-                        ->get()
-                        ->groupBy('owner');
-
+        $pullRequests = PullRequest::validPrsForTimespan($lowerLimit, $higherLimit)->get()->groupBy('owner');
         $totalPulls  = $pullRequests->sum(fn ($items) => $items->count());
         $devsContribution = self::calcTotalPercentage($totalPulls, $pullRequests);
-        return collect($devsContribution)->sort();
+        return collect($devsContribution)->sortDesc();
     }
 
-    public static function calcTotalPercentage($total, $array){
+    public static function calcTotalPercentage($total, $array)
+    {
         $percentage = [];
         if($total != 0){
             $cumulValue = 0;
@@ -126,7 +134,8 @@ class PagesController extends Controller
         return $percentage;
     }
 
-    public static function teams(Request $request){
+    public static function teams(Request $request)
+    {
         $team_request = new GitHubApiRequest
         (
             $request->githubUser['nickname'],
@@ -145,15 +154,12 @@ class PagesController extends Controller
         );
         $members_json = $members_request->handle();
 
-        dd(json_decode($members_json));
-
         return get_defined_vars();
     }
 
-    public static function prAverageTime(Request $request){
-        //calculating average prs time to merge
+    public static function savePrsToDatabase(Request $request)
+    {
         $pulls = [];
-
         $index = 0;
         do{
             $pr_request = new GitHubApiRequest
@@ -170,31 +176,64 @@ class PagesController extends Controller
             $index++;
         }while(!empty($pulls_array));
 
-        $totalPrMergeTime = 0;
         foreach($pulls as $pull)
         {
             $created_at = strtotime($pull->created_at);
             $closed_at = strtotime($pull->closed_at);
-            $mergeTime = $closed_at - $created_at;
             $owner = $pull->user->login;
             $open = $pull->state == 'open';
+            $mergeTime = $open ? strtotime('now') - $created_at : $closed_at - $created_at;
 
             PullRequest::updateOrCreate
             ([
-                'created_at' => Carbon::parse($pull->created_at)->format('Y-m-d H:i:s'),
-                'closed_at' => Carbon::parse($pull->closed_at)->format('Y-m-d H:i:s'),
+                'created_at' => $created_at,
                 'owner' => $owner,
+
+            ],
+            [
                 'mergeTime' => $mergeTime,
                 'open' => $open,
+                'closed_at' => $closed_at,
             ]);
-
-            $totalPrMergeTime += $mergeTime;
         }
+    }
 
-        $totalPrs = count($pulls);
+    public static function prAverageTime(?bool $state, DateTime $lowerLimit = null, DateTime  $higherLimit = null)
+    {
+        //calculating average prs time to merge
+        $pullsRequest = PullRequest::validPrsForTimespan($lowerLimit, $higherLimit);
+
+        $old_open_prs = $pullsRequest->sum(function ($pull) use ($lowerLimit){
+            return ($pull->open && $pull->created_at < $lowerLimit->getTimestamp());
+        });
+        $old_open_closed_whitin = $pullsRequest->sum(function ($pull) use ($lowerLimit){
+            return (!$pull->open && $pull->created_at < $lowerLimit->getTimestamp());
+        });
+        $open_whitin_but_not_closed = $pullsRequest->sum(function ($pull) use ($lowerLimit){
+            return ($pull->open && $pull->created_at >= $lowerLimit->getTimestamp());
+        });
+        $open_and_closed = $pullsRequest->sum(function ($pull) use ($lowerLimit, $higherLimit){
+            return (!$pull->open && $pull->created_at >= $lowerLimit->getTimestamp() && $pull->closed_at <= $higherLimit->getTimestamp());
+        });
+
+        $total = $pullsRequest->count();
+
+
+        $totalPrMergeTime = $pullsRequest->sum(fn($pull) => $pull->getDynamicMergeTime($lowerLimit, $higherLimit));
+        $totalPrs = count($pullsRequest);
         $averagePrMergeTime = ($totalPrs != 0) ? ($totalPrMergeTime/$totalPrs) : 0;
         //converting unix to days, hours minutes, seconds
-        return self::secondsToTime($averagePrMergeTime);
+        return
+            [
+                'times' => self::secondsToTime($averagePrMergeTime),
+                'pulls' => $pullsRequest,
+                'old_open_prs' => $old_open_prs,
+                'old_open_closed_whitin' => $old_open_closed_whitin,
+                'open_whitin_but_not_closed' => $open_whitin_but_not_closed,
+                'open_and_closed' => $open_and_closed,
+                'total' => $total,
+
+            ];
 
     }
 
@@ -233,7 +272,7 @@ class PagesController extends Controller
             '/repos/laravel/laravel/stats/contributors',
         );
 
-        // $contributos_json = $contributors->handle();
+         $contributos_json = json_decode($contributors->handle());
 
         //gets the participation metric, its purpose is to compare the owner and all members commit activity in the last 52 weeks
         $participation = new GitHubApiRequest
@@ -243,7 +282,7 @@ class PagesController extends Controller
             '/repos/reportei/reportei/stats/participation'
         );
 
-        //$participation_json = $participation->handle();
+        $participation_json = json_decode($participation->handle());
 
         //This endpoint will return all community profile metrics, including an overall health score,
         // repository description, the presence of documentation, detected code of conduct, detected license,
@@ -260,6 +299,7 @@ class PagesController extends Controller
             '/repos/DVrobotic/desafio-reportei/community/profile',
         );
 
+        $community_json = json_decode($community->handle());
         //-----------------------------------------------------------//
 
 
@@ -276,7 +316,7 @@ class PagesController extends Controller
             '/repos/reportei/reportei/traffic/popular/referrers'
         );
 
-        //$traffic_referreers_json = $traffic_referreers->handle();
+        $traffic_referreers_json = json_decode($traffic_referreers->handle());
 
 
         //Get the top 10 popular contents over the last 14 days.
@@ -287,7 +327,7 @@ class PagesController extends Controller
             '/repos/reportei/reportei/traffic/popular/paths'
         );
 
-        //$traffic_paths_json = $traffic_paths->handle();
+        $traffic_paths_json = json_decode($traffic_paths->handle());
 
         //Get the total number of views and breakdown per day or week for the last 14 days.
         // Timestamps are aligned to UTC midnight of the beginning of the day or week.
@@ -299,7 +339,7 @@ class PagesController extends Controller
             '/repos/reportei/reportei/traffic/views'
         );
 
-        // $traffic_views_json = $traffic_views->handle();
+         $traffic_views_json = json_decode($traffic_views->handle());
 
 
         $traffic_clones = new GitHubApiRequest
@@ -309,7 +349,7 @@ class PagesController extends Controller
             '/repos/reportei/reportei/traffic/clones'
         );
 
-        // $traffic_clones_json = $traffic_clones->handle();
+         $traffic_clones_json = json_decode($traffic_clones->handle());
 
         return get_defined_vars();
     }

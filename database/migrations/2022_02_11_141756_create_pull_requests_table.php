@@ -16,8 +16,8 @@ class CreatePullRequestsTable extends Migration
         Schema::create('pull_requests', function (Blueprint $table) {
             $table->id();
             $table->string('owner');
-            $table->datetime('created_at');
-            $table->datetime('closed_at');
+            $table->bigInteger('created_at');
+            $table->bigInteger('closed_at');
             $table->integer('mergeTime');
             $table->boolean('open');
 
