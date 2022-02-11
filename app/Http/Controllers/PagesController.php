@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\GitHubApiRequest;
+use App\Models\PullRequest;
+use Carbon\Carbon;
 use DateInterval;
 use DateTime;
 use Illuminate\Http\Request;
 use Auth;
+use phpDocumentor\Reflection\Types\Collection;
 
 class PagesController extends Controller
 {
@@ -64,13 +67,52 @@ class PagesController extends Controller
 
         //------- calculating average pull request merge time -------//
 
-//        $time = self::prAverageTime($request);
+        //$time = self::prAverageTime($request);
 //        dd($time);
 
         //-----------------------------------------------------------//
 
         //------------------------ teams ---------------------------//
 
+       // $team = self::teams($request);
+
+        //-----------------------------------------------------------//
+
+        //-------------------- calculating prs by dev ------------------------//
+
+        //$devsContribution = self::devsContribution();
+
+        //-----------------------------------------------------------//
+
+
+        return view('admin.dashboard', get_defined_vars());
+    }
+
+    public static function devsContribution(){
+        $pullRequests = PullRequest::orderBy('owner', 'asc')->get()->groupBy('owner');
+        $totalPulls  = $pullRequests->sum(fn ($items) => $items->count());
+        $devsContribution = self::calcTotalPercentage($totalPulls, $pullRequests);
+        return collect($devsContribution)->sort();
+    }
+
+    public static function calcTotalPercentage($total, $array){
+
+        if($total != 0){
+            $cumulValue = 0;
+            $prevBaseline = 0;
+            $percentage = [];
+            foreach($array as $key => $value){
+                $cumulValue += $value->count()/$total;
+                $cumulRounded = round($cumulValue, 4);
+                $value = $cumulRounded - $prevBaseline;
+                $prevBaseline = $cumulRounded;
+                $percentage[$key] = $value*100;
+            }
+        }
+        return $percentage;
+    }
+
+    public static function teams(Request $request){
         $team_request = new GitHubApiRequest
         (
             $request->githubUser['nickname'],
@@ -88,12 +130,10 @@ class PagesController extends Controller
             $members_url,
         );
         $members_json = $members_request->handle();
+
         dd(json_decode($members_json));
 
-        //-----------------------------------------------------------//
-
-
-        return view('admin.dashboard', get_defined_vars());
+        return get_defined_vars();
     }
 
     public static function prAverageTime(Request $request){
@@ -121,8 +161,18 @@ class PagesController extends Controller
         {
             $created_at = strtotime($pull->created_at);
             $closed_at = strtotime($pull->closed_at);
+            $mergeTime = $closed_at - $created_at;
+            $owner = $pull->user->login;
 
-            $totalPrMergeTime += $closed_at - $created_at;
+            PullRequest::updateOrCreate
+            ([
+                'created_at' => Carbon::parse($pull->created_at)->format('Y-m-d H:i:s'),
+                'closed_at' => Carbon::parse($pull->closed_at)->format('Y-m-d H:i:s'),
+                'owner' => $owner,
+                'mergeTime' => $mergeTime,
+            ]);
+
+            $totalPrMergeTime += $mergeTime;
         }
 
         $totalPrs = count($pulls);
