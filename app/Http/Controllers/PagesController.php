@@ -84,7 +84,7 @@ class PagesController extends Controller
         //-----------------------------------------------------------//
 
         //------- calculating average pull request merge time -------//
-        $lowerLimit = (new DateTime("-10 days  11:59:59pm"));
+        $lowerLimit = (new DateTime("-38 days  11:59:59pm"));
         $higherLimit = (new DateTime("-1 days 11:59:59pm"));
         $time = self::prAverageTime(null, $lowerLimit, $higherLimit);
         dd($time);
@@ -111,7 +111,7 @@ class PagesController extends Controller
      * @return \Illuminate\Support\Collection
      */
     public static function devsContribution(?bool $state, DateTime $lowerLimit = null, DateTime  $higherLimit = null){
-        $pullRequests = PullRequest::validPrsForTimespan($lowerLimit, $higherLimit)->get()->groupBy('owner');
+        $pullRequests = PullRequest::onlyWithin($lowerLimit, $higherLimit)->get()->groupBy('owner');
         $totalPulls  = $pullRequests->sum(fn ($items) => $items->count());
         $devsContribution = self::calcTotalPercentage($totalPulls, $pullRequests);
         return collect($devsContribution)->sortDesc();
@@ -201,18 +201,18 @@ class PagesController extends Controller
     public static function prAverageTime(?bool $state, DateTime $lowerLimit = null, DateTime  $higherLimit = null)
     {
         //calculating average prs time to merge
-        $pullsRequest = PullRequest::validPrsForTimespan($lowerLimit, $higherLimit);
+        $pullsRequest = PullRequest::validPrsForTimespan($lowerLimit, $higherLimit)->get();
 
-        $old_open_prs = $pullsRequest->sum(function ($pull) use ($lowerLimit){
+        $old_open_prs = $pullsRequest->filter(function ($pull) use ($lowerLimit){
             return ($pull->open && $pull->created_at < $lowerLimit->getTimestamp());
         });
-        $old_open_closed_whitin = $pullsRequest->sum(function ($pull) use ($lowerLimit){
+        $old_open_closed_whitin = $pullsRequest->filter(function ($pull) use ($lowerLimit){
             return (!$pull->open && $pull->created_at < $lowerLimit->getTimestamp());
         });
-        $open_whitin_but_not_closed = $pullsRequest->sum(function ($pull) use ($lowerLimit){
+        $open_whitin_but_not_closed = $pullsRequest->filter(function ($pull) use ($lowerLimit){
             return ($pull->open && $pull->created_at >= $lowerLimit->getTimestamp());
         });
-        $open_and_closed = $pullsRequest->sum(function ($pull) use ($lowerLimit, $higherLimit){
+        $open_and_closed = $pullsRequest->filter(function ($pull) use ($lowerLimit, $higherLimit){
             return (!$pull->open && $pull->created_at >= $lowerLimit->getTimestamp() && $pull->closed_at <= $higherLimit->getTimestamp());
         });
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use DateTime;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use function Livewire\str;
@@ -34,7 +35,22 @@ class PullRequest extends Model
                         ->where('open', true)
                         ->orWhere('closed_at', '>=', $lowerLimit);
                 })
-            ->orderBy('owner', 'asc')
-            ->get();
+            ->orderBy('owner', 'asc');
     }
+
+    public static function scopeOnlyWithin($query,DateTime $lowerLimit = null, DateTime  $higherLimit = null){
+        $lowerLimit = $lowerLimit->getTimestamp() ?? strtotime("0000-00-00 00:00:00");
+        $higherLimit = $higherLimit->getTimestamp() ?? strtotime("now");
+        return $query->where('created_at', '>=', $lowerLimit)->where('created_at', '<=', $higherLimit);
+    }
+
+    public static function scopeNoForgotten($query,DateTime $lowerLimit = null, DateTime  $higherLimit = null){
+        $query = $query->ValidPrsForTimespan($lowerLimit, $higherLimit);
+        $lowerLimit = $lowerLimit->getTimestamp() ?? strtotime("0000-00-00 00:00:00");
+        $higherLimit = $higherLimit->getTimestamp() ?? strtotime("now");
+        return $query->where(function ($query) use ($lowerLimit){
+            return $query->where('open', true)->where('created_at', '>=', $lowerLimit);
+        });
+    }
+
 }
