@@ -19,6 +19,7 @@ class CreatePullRequestsTable extends Migration
             $table->datetime('created_at');
             $table->datetime('closed_at');
             $table->integer('mergeTime');
+            $table->boolean('open');
 
         });
     }

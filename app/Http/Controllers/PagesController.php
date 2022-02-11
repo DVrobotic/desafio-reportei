@@ -79,8 +79,10 @@ class PagesController extends Controller
         //-----------------------------------------------------------//
 
         //-------------------- calculating prs by dev ------------------------//
-
-        //$devsContribution = self::devsContribution();
+        $lowerLimit = (new DateTime("-15 days"));
+        $higherLimit = (new DateTime("today"));
+        $devsContribution = self::devsContribution(null, $lowerLimit, $higherLimit);
+        dd($devsContribution);
 
         //-----------------------------------------------------------//
 
@@ -88,25 +90,37 @@ class PagesController extends Controller
         return view('admin.dashboard', get_defined_vars());
     }
 
-    public static function devsContribution(){
-        $pullRequests = PullRequest::orderBy('owner', 'asc')->get()->groupBy('owner');
+    /**
+     * @param DateTime $
+     * @return \Illuminate\Support\Collection
+     */
+    public static function devsContribution(?bool $state, DateTime $lowerLimit = null, DateTime  $higherLimit = null){
+        $lowerLimit = $lowerLimit ?? (new DateTime("0000-00-00 00:00:00"));
+        $higherLimit = $higherLimit ?? (new DateTime("now"));
+        $pullQuery = $state != null ? PullRequest::where('open', $state) : PullRequest::where('open', '!=', null);
+        $pullRequests = $pullQuery
+                        ->whereDate('created_at', '>=', $lowerLimit)
+                        ->whereDate('created_at', '<=', $higherLimit)
+                        ->orderBy('owner', 'asc')
+                        ->get()
+                        ->groupBy('owner');
+
         $totalPulls  = $pullRequests->sum(fn ($items) => $items->count());
         $devsContribution = self::calcTotalPercentage($totalPulls, $pullRequests);
         return collect($devsContribution)->sort();
     }
 
     public static function calcTotalPercentage($total, $array){
-
+        $percentage = [];
         if($total != 0){
             $cumulValue = 0;
             $prevBaseline = 0;
-            $percentage = [];
-            foreach($array as $key => $value){
-                $cumulValue += $value->count()/$total;
-                $cumulRounded = round($cumulValue, 4);
-                $value = $cumulRounded - $prevBaseline;
+            foreach($array as $key => $pull){
+                $cumulValue += $pull->count()/$total;
+                $cumulRounded = round($cumulValue, 6);
+                $result = $cumulRounded - $prevBaseline;
                 $prevBaseline = $cumulRounded;
-                $percentage[$key] = $value*100;
+                $percentage[$key] = $result*100;
             }
         }
         return $percentage;
@@ -148,7 +162,7 @@ class PagesController extends Controller
                 $request->githubUser['token'],
                 '',
             );
-            $pulls_json = $pr_request->pulls('reportei', 'reportei', 'closed', 'page=' . $index . '&per_page=100&');
+            $pulls_json = $pr_request->pulls('reportei', 'reportei', 'all', 'page=' . $index . '&per_page=100&');
             $pulls_array = json_decode($pulls_json);
             if(!empty($pulls_array)){
                 $pulls = array_merge($pulls, $pulls_array);
@@ -163,6 +177,7 @@ class PagesController extends Controller
             $closed_at = strtotime($pull->closed_at);
             $mergeTime = $closed_at - $created_at;
             $owner = $pull->user->login;
+            $open = $pull->state == 'open';
 
             PullRequest::updateOrCreate
             ([
@@ -170,6 +185,7 @@ class PagesController extends Controller
                 'closed_at' => Carbon::parse($pull->closed_at)->format('Y-m-d H:i:s'),
                 'owner' => $owner,
                 'mergeTime' => $mergeTime,
+                'open' => $open,
             ]);
 
             $totalPrMergeTime += $mergeTime;
