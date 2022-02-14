@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Cassandra\Date;
 use DateInterval;
 use DateTime;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Request;
 use Auth;
 use phpDocumentor\Reflection\Types\Collection;
@@ -84,9 +85,9 @@ class PagesController extends Controller
         //-----------------------------------------------------------//
 
         //------- calculating average pull request merge time -------//
-        $lowerLimit = (new DateTime("-38 days  11:59:59pm"));
-        $higherLimit = (new DateTime("-1 days 11:59:59pm"));
-        $time = self::prAverageTime(null, $lowerLimit, $higherLimit);
+        $start = (new DateTime("-50 days  11:59:59pm"));
+        $end = (new DateTime("-1 days 11:59:59pm"));
+        $time = self::prAverageTime($start, $end);
         dd($time);
 
         //-----------------------------------------------------------//
@@ -198,43 +199,41 @@ class PagesController extends Controller
         }
     }
 
-    public static function prAverageTime(?bool $state, DateTime $lowerLimit = null, DateTime  $higherLimit = null)
+    public static function prAverageTime(DateTime $start = null, DateTime  $end = null)
     {
         //calculating average prs time to merge
-        $pullsRequest = PullRequest::validPrsForTimespan($lowerLimit, $higherLimit)->get();
+        $start = $start->getTimestamp() ?? strtotime("0000-00-00 00:00:00");
+        $end = $end->getTimestamp() ?? strtotime("now");
 
-        $old_open_prs = $pullsRequest->filter(function ($pull) use ($lowerLimit){
-            return ($pull->open && $pull->created_at < $lowerLimit->getTimestamp());
-        });
-        $old_open_closed_whitin = $pullsRequest->filter(function ($pull) use ($lowerLimit){
-            return (!$pull->open && $pull->created_at < $lowerLimit->getTimestamp());
-        });
-        $open_whitin_but_not_closed = $pullsRequest->filter(function ($pull) use ($lowerLimit){
-            return ($pull->open && $pull->created_at >= $lowerLimit->getTimestamp());
-        });
-        $open_and_closed = $pullsRequest->filter(function ($pull) use ($lowerLimit, $higherLimit){
-            return (!$pull->open && $pull->created_at >= $lowerLimit->getTimestamp() && $pull->closed_at <= $higherLimit->getTimestamp());
-        });
+        $pullQuery = PullRequest::intersection($start, $end);
+        $allPulls = $pullQuery->get();
+        $onlyClosed = $pullQuery->closed($end)->get();
+        //converting unix to days, hours minutes, seconds
+        return
+            [
+                'allPulls' => self::calcPrAverageTime($allPulls, $start, $end),
+                'onlyClosed' => self::calcPrAverageTime($onlyClosed, $start, $end),
+            ];
 
-        $total = $pullsRequest->count();
+    }
 
-
-        $totalPrMergeTime = $pullsRequest->sum(fn($pull) => $pull->getDynamicMergeTime($lowerLimit, $higherLimit));
-        $totalPrs = count($pullsRequest);
+    public static function calcPrAverageTime(EloquentCollection $pulls, int $start, int  $end){
+        $totalPrMergeTime = $pulls->sum(fn(PullRequest $pull) => $pull->getDynamicMergeTime($start, $end));
+        $totalPrs = count($pulls);
         $averagePrMergeTime = ($totalPrs != 0) ? ($totalPrMergeTime/$totalPrs) : 0;
         //converting unix to days, hours minutes, seconds
         return
             [
+                'start' => date("Y-m-d H:i:s", $start),
+                'end' => date("Y-m-d H:i:s", $end),
                 'times' => self::secondsToTime($averagePrMergeTime),
-                'pulls' => $pullsRequest,
-                'old_open_prs' => $old_open_prs,
-                'old_open_closed_whitin' => $old_open_closed_whitin,
-                'open_whitin_but_not_closed' => $open_whitin_but_not_closed,
-                'open_and_closed' => $open_and_closed,
-                'total' => $total,
-
+                'informations' => $pulls->map(fn($pull) =>
+                    date("Y-m-d H:i:s", $pull->created_at) .
+                    ' - ' .
+                    ($pull->open ? '?' : date("Y-m-d H:i:s", $pull->closed_at)) .
+                    ' / mergeTime: ' . $pull->getDynamicMergeTime($start, $end)),
+                'pulls' => $pulls,
             ];
-
     }
 
     public static function traffic(Request $request){

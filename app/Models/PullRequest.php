@@ -13,44 +13,45 @@ class PullRequest extends Model
 {
     use HasFactory;
     protected $guarded = [];
-
     public $timestamps = false;
 
-
-    public function getDynamicMergeTime(DateTime  $lowerLimit = null, DateTime  $higherLimit = null){
-        $lowerLimit = $lowerLimit->getTimestamp() ?? strtotime("0000-00-00 00:00:00");
-        $higherLimit = $higherLimit->getTimestamp() ?? strtotime("now");
-        $start = ($this->created_at != 0 && $this->created_at > $lowerLimit  ? $this->created_at : $lowerLimit);
-        $end = ($this->closed_at != 0 && $this->closed_at < $higherLimit  ? $this->closed_at : $higherLimit);
+    public function getDynamicMergeTime(int  $start = null, int  $end = null){
+        $start = ($this->created_at != 0 && $this->created_at > $start  ? $this->created_at : $start);
+        $end = ($this->closed_at != 0 && $this->closed_at < $end  ? $this->closed_at : $end);
         return $end - $start;
     }
 
-    public static function scopeValidPrsForTimespan(Builder $query, DateTime  $lowerLimit = null, DateTime  $higherLimit = null){
-        $lowerLimit = $lowerLimit->getTimestamp() ?? strtotime("0000-00-00 00:00:00");
-        $higherLimit = $higherLimit->getTimestamp() ?? strtotime("now");
-        return  $query->where('created_at', '<=', $higherLimit)
-                ->where(function($query) use ($lowerLimit)
-                {
-                    $query
-                        ->where('open', true)
-                        ->orWhere('closed_at', '>=', $lowerLimit);
-                })
-            ->orderBy('owner', 'asc');
+    //returns the prs that have an intersection with the timeline passed,
+    //first it checks if they were created before the $end of the timeline
+    //then it checks if wasn't closed before the $start of the timeline
+    //if both condition are true, then its an intersection
+    public static function scopeIntersection($query, int $start, int $end){
+        return $query
+            ->where('created_at', '<' , $end) #pr created before the timeline starts
+            ->notClosedBefore($start) ; #and is not closed before the start
     }
 
-    public static function scopeOnlyWithin($query,DateTime $lowerLimit = null, DateTime  $higherLimit = null){
-        $lowerLimit = $lowerLimit->getTimestamp() ?? strtotime("0000-00-00 00:00:00");
-        $higherLimit = $higherLimit->getTimestamp() ?? strtotime("now");
-        return $query->where('created_at', '>=', $lowerLimit)->where('created_at', '<=', $higherLimit);
+    //get all prs that are not closed before the time passed, if its open it should be included too
+    public static function scopeNotClosedBefore($query, int $start)
+    {
+        return $query
+            ->where('open', true) #if its open, it has no closing time, therefore most be closed after
+            ->orWhere(function($query) use ($start){ #closure to make sure only closed ones are being counted in
+                return $query
+                    ->where('open', false)
+                    ->where('closed_at', '>', $start); #if it closed after the start and it started before, there must be an intersection
+            });
+
     }
 
-    public static function scopeNoForgotten($query,DateTime $lowerLimit = null, DateTime  $higherLimit = null){
-        $query = $query->ValidPrsForTimespan($lowerLimit, $higherLimit);
-        $lowerLimit = $lowerLimit->getTimestamp() ?? strtotime("0000-00-00 00:00:00");
-        $higherLimit = $higherLimit->getTimestamp() ?? strtotime("now");
-        return $query->where(function ($query) use ($lowerLimit){
-            return $query->where('open', true)->where('created_at', '>=', $lowerLimit);
-        });
+    //returns all closed prs relatively to the max time passed
+    public static function scopeClosed($query, int $end){
+        return $query
+            ->where('open', false)
+            ->where('closed_at', '<=', $end);
     }
 
+    public static function scopeOr($query, callable $closure, array $args){
+        return $query->orWhere(fn($query) => $query->closure(...$args));
+    }
 }
