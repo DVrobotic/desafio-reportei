@@ -83,33 +83,18 @@ class PagesController extends Controller
         //-----------------------------------------------------------//
 
         //------- calculating average pull request merge time -------//
-        $start = (new DateTime("-20 days  11:59:59pm"));
-        $end = (new DateTime("now"));
+        $start = (new DateTime("-40 days  11:59:59pm"));
+        $end = (new DateTime("-35 days 11:59:59pm"));
+        $pace = new DateInterval('P1D');
         $time = self::prAverageTime($start, $end, ['reportei/reportei', 'reportei/generator3']);
-        $pullsInfo = $time['allPulls']['pulls']->map(fn($pull) =>
-        [
-            'created_at' => $pull->created_at,
-            'closed_at' => $pull->closed_at,
-            'open' => $pull->open,
-        ]);
+        $data = self::plotAxis($time, $start, $end, $pace);
 
-        $pullsOpenBefore = collect($time['openBefore'])->count();
+        $prsOpenBefore = $time['openBefore']['pulls']->values();
+        $prsOpenBeforeMergeTime =
+            $prsOpenBefore ->count() > 0 ?
+                self::secondsToTimeStr($prsOpenBefore[0]
+                    ->getDynamicMergeTime($start->getTimestamp(), $end->getTimestamp())) : 0;
 
-        $period = new DatePeriod(
-            new DateTime('-20 days  11:59:59pm'),
-            new DateInterval('P1D'),
-            new DateTime('now')
-        );
-
-        $dateArray = [];
-        $mergeDateArray = [];
-        foreach($period as $date){
-            array_push($dateArray, $date->format('d-m-Y'));
-            array_push($mergeDateArray, $time['allPulls']['pulls']->filter(function($pull) use ($date){
-                return !$pull->open && date('d-m-Y', $pull->closed_at) == $date->format('d-m-Y');
-            }));
-        }
-        $mergeDateArray = collect($mergeDateArray)->map(fn($pulls) => $pulls->sum(fn($pull) => $pull->getDynamicMergeTime($start->getTimestamp(), $end->getTimestamp())));
         //-----------------------------------------------------------//
 
         //-------------------- calculating prs by dev ------------------------//
@@ -122,6 +107,60 @@ class PagesController extends Controller
 
 
         return view('admin.dashboard', get_defined_vars());
+    }
+
+    public static function plotAxis($time, DateTime $start, DateTime  $end, DateInterval $pace){
+
+        //using native function to get time period
+
+        $pulls = $time['allPulls']['pulls'];
+        //time period
+        $period = new DatePeriod(
+            $start,
+            $pace,
+            $end
+        );
+        //making the date array to string format
+        $dateArray = self::configX($period)->toArray();
+
+        //making the pull requests groupings in each day
+        $closedPullsCollection = self::configYforClosing($pulls, $period);
+        $openPullsCollection = self::configYforOpening($pulls, $period);
+
+
+        //returning the sum of the dynamic merge time on the pulls
+        $mergeClosedDateArray = $closedPullsCollection->map(self::getGroupMergetime($pulls, $start, $end))->toArray();
+        $mergeOpenDateArray = $openPullsCollection->map(self::getGroupMergetime($pulls, $start, $end))->toArray();
+
+        return compact('dateArray', 'mergeClosedDateArray', 'mergeOpenDateArray');
+    }
+
+    public static function configX($period) : \Illuminate\Support\Collection
+    {
+        return collect($period)->map(fn($date) => $date->format('d-m-Y'));
+    }
+
+    public static function configYforClosing($pulls, $period){
+        return collect($period)->map
+        (
+            fn($date)
+            => $pulls->filter(fn($pull)
+            => !$pull->open && date('d-m-Y', $pull->closed_at) == $date->format('d-m-Y'))
+        );
+    }
+
+    public static function configYforOpening($pulls, $period){
+        return collect($period)->map
+        (
+            fn($date)
+            => $pulls->filter(fn($pull)
+            => $pull->open && date('d-m-Y', $pull->created_at) == $date->format('d-m-Y'))
+        );
+    }
+
+
+    public static function getGroupMergetime($pulls, $start, $end) : callable{
+        return fn($pulls) => $pulls->sum(fn($pull) => $pull->getDynamicMergeTime($start->getTimestamp(), $end->getTimestamp()));
     }
 
     /**
@@ -223,13 +262,14 @@ class PagesController extends Controller
         $end = $end->getTimestamp() ?? strtotime("now");
 
         $repoQuery = empty($repos) ? PullRequest::all() : PullRequest::whereIn('repo', $repos);
-        $repoCollect = $repoQuery->get();
         $pullQuery = $repoQuery->intersection($start, $end);
         $allPulls = $pullQuery->get();
         $onlyClosed = $pullQuery->closed($end)->get();
         $onlyWithin = $allPulls->where('created_at', '>', $start);
         $onlyClosedWithin = $onlyClosed->where('created_at', '>', $start);
-        $openBefore = $repoCollect->where('created_at', '<', $start)->where('open', true);
+        $openBefore = $allPulls->filter(function($pull) use ($start, $end){
+            return ($pull->created_at < $start) && ($pull->open || $pull->closed_at > $end);
+        });
 
         //converting unix to days, hours minutes, seconds
         return
@@ -247,16 +287,17 @@ class PagesController extends Controller
         $totalPrMergeTime = $pulls->sum(fn(PullRequest $pull) => $pull->getDynamicMergeTime($start, $end));
         $totalPrs = count($pulls);
         $averagePrMergeTime = ($totalPrs != 0) ? ($totalPrMergeTime/$totalPrs) : 0;
+        $format = "Y-m-d H:i:s";
         //converting unix to days, hours minutes, seconds
         return
             [
-                'start' => date("Y-m-d H:i:s", $start),
-                'end' => date("Y-m-d H:i:s", $end),
-                'times' => self::secondsToTime($averagePrMergeTime),
+                'start' => date($format, $start),
+                'end' => date($format, $end),
+                'times' => self::secondsToTimeStr($averagePrMergeTime),
                 'informations' => $pulls->map(fn($pull) =>
-                    date("Y-m-d H:i:s", $pull->created_at) .
+                    date($format, $pull->created_at) .
                     ' - ' .
-                    ($pull->open ? '?' : date("Y-m-d H:i:s", $pull->closed_at)) .
+                    ($pull->open ? '?' : date($format, $pull->closed_at)) .
                     ' / mergeTime: ' . $pull->getDynamicMergeTime($start, $end)),
                 'pulls' => $pulls,
             ];
@@ -569,5 +610,10 @@ class PagesController extends Controller
             's' => (int) $seconds,
         );
         return $obj;
+    }
+
+    public static function secondsToTimeStr($inputSeconds){
+        $obj = self::secondsToTime($inputSeconds);
+        return "{$obj['d']}D {$obj['h']}H {$obj['m']}M {$obj['s']}S";
     }
 }
