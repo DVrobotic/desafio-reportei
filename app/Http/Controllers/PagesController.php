@@ -7,6 +7,7 @@ use App\Models\PullRequest;
 use Carbon\Carbon;
 use Cassandra\Date;
 use DateInterval;
+use DatePeriod;
 use DateTime;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Request;
@@ -26,9 +27,6 @@ class PagesController extends Controller
         return view('auth.login');
     }
 
-    /**
-     * @throws \Exception
-     */
     public function dashboard(Request $request)
     {
         //----------------- user,search,general requests -----------------------//
@@ -88,18 +86,37 @@ class PagesController extends Controller
         $start = (new DateTime("-20 days  11:59:59pm"));
         $end = (new DateTime("now"));
         $time = self::prAverageTime($start, $end, ['reportei/reportei', 'reportei/generator3']);
-        dd($time);
+        $pullsInfo = $time['allPulls']['pulls']->map(fn($pull) =>
+        [
+            'created_at' => $pull->created_at,
+            'closed_at' => $pull->closed_at,
+            'open' => $pull->open,
+        ]);
 
+        $pullsOpenBefore = collect($time['openBefore'])->count();
+
+        $period = new DatePeriod(
+            new DateTime('-20 days  11:59:59pm'),
+            new DateInterval('P1D'),
+            new DateTime('now')
+        );
+
+        $dateArray = [];
+        $mergeDateArray = [];
+        foreach($period as $date){
+            array_push($dateArray, $date->format('d-m-Y'));
+            array_push($mergeDateArray, $time['allPulls']['pulls']->filter(function($pull) use ($date){
+                return !$pull->open && date('d-m-Y', $pull->closed_at) == $date->format('d-m-Y');
+            }));
+        }
+        $mergeDateArray = collect($mergeDateArray)->map(fn($pulls) => $pulls->sum(fn($pull) => $pull->getDynamicMergeTime($start->getTimestamp(), $end->getTimestamp())));
         //-----------------------------------------------------------//
-
-
 
         //-------------------- calculating prs by dev ------------------------//
 
 //        $lowerLimit = (new DateTime("-30 days"));
 //        $higherLimit = (new DateTime("-1 days"));
 //        $devsContribution = self::devsContribution(null, $lowerLimit, $higherLimit);
-//        dd($devsContribution);
 
         //-----------------------------------------------------------//
 
@@ -129,7 +146,7 @@ class PagesController extends Controller
                 $cumulRounded = round($cumulValue, 6);
                 $result = $cumulRounded - $prevBaseline;
                 $prevBaseline = $cumulRounded;
-                $percentage[$key] = $result*100;
+                $percentage[$key] = $result * 100;
             }
         }
         return $percentage;
@@ -158,7 +175,7 @@ class PagesController extends Controller
         return get_defined_vars();
     }
 
-    public static function savePrsToDatabase(Request $request, $owner, $repo)
+    public static function savePrsToDatabase(Request $request, $owner,$repo)
     {
         $pulls = [];
         $index = 0;
@@ -206,11 +223,14 @@ class PagesController extends Controller
         $end = $end->getTimestamp() ?? strtotime("now");
 
         $repoQuery = empty($repos) ? PullRequest::all() : PullRequest::whereIn('repo', $repos);
+        $repoCollect = $repoQuery->get();
         $pullQuery = $repoQuery->intersection($start, $end);
         $allPulls = $pullQuery->get();
         $onlyClosed = $pullQuery->closed($end)->get();
         $onlyWithin = $allPulls->where('created_at', '>', $start);
         $onlyClosedWithin = $onlyClosed->where('created_at', '>', $start);
+        $openBefore = $repoCollect->where('created_at', '<', $start)->where('open', true);
+
         //converting unix to days, hours minutes, seconds
         return
             [
@@ -218,6 +238,7 @@ class PagesController extends Controller
                 'onlyClosed' => self::calcPrAverageTime($onlyClosed, $start, $end),
                 'onlyWithin' => self::calcPrAverageTime($onlyWithin, $start, $end),
                 'onlyClosedWithin' => self::calcPrAverageTime($onlyClosedWithin, $start, $end),
+                'openBefore' => self::calcPrAverageTime($openBefore, $start, $end),
             ];
 
     }
