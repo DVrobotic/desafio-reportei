@@ -15,6 +15,7 @@ class CreatePullRequestsTable extends Migration
     {
         Schema::create('pull_requests', function (Blueprint $table) {
             $table->id();
+            $table->string('repo')->index();
             $table->string('owner');
             $table->bigInteger('created_at');
             $table->bigInteger('closed_at');

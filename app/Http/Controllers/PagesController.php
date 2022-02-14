@@ -72,7 +72,7 @@ class PagesController extends Controller
 
         //--------------------- pull requests -----------------------//
 
-//       $pullRequests = self::savePrsToDatabase($request);
+//       $pullRequests = self::savePrsToDatabase($request, 'reportei', 'generator3');
 //       dd('teste');
 
         //-----------------------------------------------------------//
@@ -85,9 +85,9 @@ class PagesController extends Controller
         //-----------------------------------------------------------//
 
         //------- calculating average pull request merge time -------//
-        $start = (new DateTime("-50 days  11:59:59pm"));
-        $end = (new DateTime("-1 days 11:59:59pm"));
-        $time = self::prAverageTime($start, $end);
+        $start = (new DateTime("-20 days  11:59:59pm"));
+        $end = (new DateTime("now"));
+        $time = self::prAverageTime($start, $end, ['reportei/reportei', 'reportei/generator3']);
         dd($time);
 
         //-----------------------------------------------------------//
@@ -158,7 +158,7 @@ class PagesController extends Controller
         return get_defined_vars();
     }
 
-    public static function savePrsToDatabase(Request $request)
+    public static function savePrsToDatabase(Request $request, $owner, $repo)
     {
         $pulls = [];
         $index = 0;
@@ -169,7 +169,7 @@ class PagesController extends Controller
                 $request->githubUser['token'],
                 '',
             );
-            $pulls_json = $pr_request->pulls('reportei', 'reportei', 'all', 'page=' . $index . '&per_page=100&');
+            $pulls_json = $pr_request->pulls($owner, $repo, 'all', 'page=' . $index . '&per_page=100&');
             $pulls_array = json_decode($pulls_json);
             if(!empty($pulls_array)){
                 $pulls = array_merge($pulls, $pulls_array);
@@ -181,15 +181,15 @@ class PagesController extends Controller
         {
             $created_at = strtotime($pull->created_at);
             $closed_at = strtotime($pull->closed_at);
-            $owner = $pull->user->login;
+            $pr_owner = $pull->user->login;
             $open = $pull->state == 'open';
             $mergeTime = $open ? strtotime('now') - $created_at : $closed_at - $created_at;
 
             PullRequest::updateOrCreate
             ([
                 'created_at' => $created_at,
-                'owner' => $owner,
-
+                'owner' => $pr_owner,
+                'repo' => $owner . '/' . $repo,
             ],
             [
                 'mergeTime' => $mergeTime,
@@ -199,20 +199,25 @@ class PagesController extends Controller
         }
     }
 
-    public static function prAverageTime(DateTime $start = null, DateTime  $end = null)
+    public static function prAverageTime(DateTime $start = null, DateTime  $end = null, $repos = [])
     {
         //calculating average prs time to merge
         $start = $start->getTimestamp() ?? strtotime("0000-00-00 00:00:00");
         $end = $end->getTimestamp() ?? strtotime("now");
 
-        $pullQuery = PullRequest::intersection($start, $end);
+        $repoQuery = empty($repos) ? PullRequest::all() : PullRequest::whereIn('repo', $repos);
+        $pullQuery = $repoQuery->intersection($start, $end);
         $allPulls = $pullQuery->get();
         $onlyClosed = $pullQuery->closed($end)->get();
+        $onlyWithin = $allPulls->where('created_at', '>', $start);
+        $onlyClosedWithin = $onlyClosed->where('created_at', '>', $start);
         //converting unix to days, hours minutes, seconds
         return
             [
                 'allPulls' => self::calcPrAverageTime($allPulls, $start, $end),
                 'onlyClosed' => self::calcPrAverageTime($onlyClosed, $start, $end),
+                'onlyWithin' => self::calcPrAverageTime($onlyWithin, $start, $end),
+                'onlyClosedWithin' => self::calcPrAverageTime($onlyClosedWithin, $start, $end),
             ];
 
     }

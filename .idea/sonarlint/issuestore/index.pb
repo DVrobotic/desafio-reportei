@@ -19,5 +19,3 @@ C
 -app/Http/Controllers/Auth/LoginController.php,d\2\d2f6ed6918131d406f7abde65d228bce0ec7f88c
 M
 app/Jobs/GitHubApiRequest.php,3\4\3409a219b1b0519dddba8b8dcc654942c4a0f0ec
-t
-Ddatabase/migrations/2022_02_11_141756_create_pull_requests_table.php,a\f\af93e70a100cbe55847fb5cf8e293756af205534
