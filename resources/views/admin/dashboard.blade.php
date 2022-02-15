@@ -4,7 +4,8 @@
 
 @section('content')
     <div>
-        <h1>tempo medio de merge: {{ $time['allPulls']['times'] }}</h1>
+        <h4>tempo medio de merge total: {{ $time['allPulls']['times'] }}</h4>
+        <h4>tempo medio de merge das fechadas: {{ $time['onlyClosed']['times'] }}</h4>
         <canvas id="myChart"></canvas>
     </div>
     <div class="my-4">
@@ -48,33 +49,34 @@
             data: data,
             options: {
                 responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    title: {
-                        display: true,
-                        text: 'Chart.js Bar Chart'
-                    }
-                },
-            },
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        stepSize: 3600*24*5,
-                        callback: function(label, index, labels) {
-                            return secondsToTime(label);
+                tooltips: {
+                    enabled: true,
+                    mode: 'single',
+                    callbacks: {
+                        title: function(tooltipItems){
+                            console.log(tooltipItems, );
+                            return (tooltipItems[0].datasetIndex ? 'Pull Request Aberta em ' : 'Pull Request Fechada em ') + tooltipItems[0].label;
+                        },
+                        label: function (tooltipItems) {
+                            return "Merge Time: " + secondsToTime(tooltipItems.value);
                         }
                     }
-                }],
-            }
+                },
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            stepSize: 3600*24*5,
+                            callback: function(label, index, labels) {
+                                return secondsToTime(label);
+                            }
+                        }
+                    }],
+                },
+            },
+
         };
         var ctx = document.getElementById('myChart').getContext('2d');
-        var myChart = new Chart(ctx, {
-            type: "bar",
-            data: data,
-            options: config,
-        });
+        var myChart = new Chart(ctx, config);
 
         function secondsToTime(inputSeconds){
             var secondsInAMinute = 60;
