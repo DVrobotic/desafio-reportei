@@ -44,6 +44,10 @@ class PullRequest extends Model
 
     }
 
+    public static function scopeOnlyWithin($query, int $start, int $end){
+        return $query->where('created_at', ">=", $start)->where("created_at", "<=", $end);
+    }
+
     //returns all closed prs relatively to the max time passed
     public static function scopeClosed($query, int $end){
         return $query

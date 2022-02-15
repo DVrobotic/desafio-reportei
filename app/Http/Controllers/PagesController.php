@@ -83,9 +83,9 @@ class PagesController extends Controller
         //-----------------------------------------------------------//
 
         //------- calculating average pull request merge time -------//
-        $start = (new DateTime("-8 years  11:59:59pm"));
+        $start = (new DateTime("-30 days  11:59:59pm"));
         $end = (new DateTime("now"));
-        $pace = new DateInterval('P1M');
+        $pace = new DateInterval('P1D');
         $time = self::prAverageTime(['reportei/reportei', 'reportei/generator3'], $start, $end);
         $data = self::plotAxis($time, $start, $end, $pace);
 
@@ -99,9 +99,7 @@ class PagesController extends Controller
 
         //-------------------- calculating prs by dev ------------------------//
 
-//        $lowerLimit = (new DateTime("-30 days"));
-//        $higherLimit = (new DateTime("-1 days"));
-//        $devsContribution = self::devsContribution(null, $lowerLimit, $higherLimit);
+        $devsContribution = self::devsContribution(null, $start, $end);
 
         //-----------------------------------------------------------//
 
@@ -188,13 +186,23 @@ class PagesController extends Controller
      * @param DateTime $
      * @return \Illuminate\Support\Collection
      */
-    public static function devsContribution(?bool $state, DateTime $lowerLimit = null, DateTime  $higherLimit = null){
-        $pullRequests = PullRequest::onlyWithin($lowerLimit, $higherLimit)->get()->groupBy('owner');
+    public static function devsContribution(?bool $state, DateTime $start = null, DateTime  $end = null){
+        //making so the datetime becomes a unix timestamp
+        $start = $start != null ? $start->getTimestamp() : strtotime("0000-00-00 00:00:00");
+        $end = $end != null ? $end->getTimestamp() : strtotime("now");
+
+        //getting only the prs created in the timeline
+        $pullRequests = PullRequest::onlyWithin($start, $end)->get()->groupBy('owner');
+
+        //getting total pulls requests created
         $totalPulls  = $pullRequests->sum(fn ($items) => $items->count());
+
+        //calculating devs contribution, based on prs ownership
         $devsContribution = self::calcTotalPercentage($totalPulls, $pullRequests);
         return collect($devsContribution)->sortDesc();
     }
 
+    //algorith to
     public static function calcTotalPercentage($total, $array)
     {
         $percentage = [];
@@ -203,7 +211,7 @@ class PagesController extends Controller
             $prevBaseline = 0;
             foreach($array as $key => $pull){
                 $cumulValue += $pull->count()/$total;
-                $cumulRounded = round($cumulValue, 6);
+                $cumulRounded = round($cumulValue, 4);
                 $result = $cumulRounded - $prevBaseline;
                 $prevBaseline = $cumulRounded;
                 $percentage[$key] = $result * 100;

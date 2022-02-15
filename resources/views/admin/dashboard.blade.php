@@ -3,13 +3,17 @@
 @section('title', 'Dashboard')
 
 @section('content')
-    <div>
+    <div class="my-5 pb-5">
+        <h4>Contribuição por devs em prs</h4>
+        <canvas class="my-4" id="devsChart"></canvas>
+    </div>
+    <div class="mt-4">
         <h4>tempo medio de merge total: {{ $time['allPulls']['times'] }}</h4>
         <h4>tempo medio de merge das fechadas: {{ $time['onlyClosed']['times'] }}</h4>
-        <canvas id="myChart"></canvas>
+        <canvas height="200em" id="myChart"></canvas>
     </div>
     <div class="my-4">
-        <h4>Tempo médio de merge de prs antigas aplicada: {{ $prsOpenBeforeMergeTime }}</h4>
+        <h4 class="mt-3">Tempo médio de merge de prs antigas aplicada: {{ $prsOpenBeforeMergeTime }}</h4>
         @foreach($prsOpenBefore as $pull)
             <h5>Pull de {{ $pull->owner }}</h5>
             <label>Criada em:
@@ -24,6 +28,44 @@
 
 @push('scripts')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    <script>
+        const doughnutData = {
+            labels: {!! json_encode($devsContribution->keys()) !!},
+            datasets: [{
+                label: 'Contribuição em Pull Requests por dev',
+                data: {!! json_encode($devsContribution->values()) !!},
+                backgroundColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(54, 162, 235)',
+                    'rgb(255, 205, 86)',
+                    'rgb(255, 0, 0)',
+                    'rgb(0, 162, 235)',
+                    'rgb(150, 0, 86)',
+                ],
+                hoverOffset: 4
+            }]
+        };
+        const doughnutConfig = {
+            type: 'doughnut',
+            data: doughnutData,
+            options: {
+                responsive: true,
+                tooltips: {
+                    callbacks: {
+                        title: function(tooltipItem, data) {
+                            return data['labels'][tooltipItem[0]['index']];
+                        },
+                        label: function(tooltipItem, data) {
+                            return data['datasets'][0]['data'][tooltipItem['index']].toFixed(2) + "%";
+                        },
+                    }
+                },
+            }
+        };
+        var devsChartElement = document.getElementById('devsChart').getContext('2d');
+        var devsChart = new Chart(devsChartElement, doughnutConfig);
+    </script>
+
     <script>
         var openCount = {!! json_encode($data['pullsCount']['open']) !!};
         var closedCount ={!! json_encode($data['pullsCount']['closed']) !!};
