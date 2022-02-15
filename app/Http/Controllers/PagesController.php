@@ -135,8 +135,13 @@ class PagesController extends Controller
         //usin
         $mergeClosedDateArray = $closedPullsCollection->map(self::getGroupMergetime($pulls, $start, $end))->toArray();
         $mergeOpenDateArray = $openPullsCollection->map(self::getGroupMergetime($pulls, $start, $end))->toArray();
+        $pullsCount =
+        [
+            'open' => $openPullsCollection->map(fn($pulls) => $pulls->count()),
+            'closed' => $closedPullsCollection->map(fn($pulls) => $pulls->count())
+        ];
 
-        return compact('dateArray', 'mergeClosedDateArray', 'mergeOpenDateArray');
+        return compact('dateArray', 'mergeClosedDateArray', 'mergeOpenDateArray', 'pullsCount');
     }
 
     public static function configX($period) : \Illuminate\Support\Collection

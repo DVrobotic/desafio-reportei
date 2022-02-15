@@ -25,7 +25,8 @@
 @push('scripts')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
     <script>
-
+        var openCount = {!! json_encode($data['pullsCount']['open']) !!};
+        var closedCount ={!! json_encode($data['pullsCount']['closed']) !!};
         var xValues = {!! json_encode($data['dateArray']) !!};
         var closedValues = {!! json_encode($data['mergeClosedDateArray']) !!};
         var openValues = {!! json_encode($data['mergeOpenDateArray']) !!};
@@ -54,11 +55,15 @@
                     mode: 'single',
                     callbacks: {
                         title: function(tooltipItems){
-                            console.log(tooltipItems, );
                             return (tooltipItems[0].datasetIndex ? 'Pull Request Aberta em ' : 'Pull Request Fechada em ') + tooltipItems[0].label;
                         },
                         label: function (tooltipItems) {
                             return "Merge Time: " + secondsToTime(tooltipItems.value);
+                        },
+                        afterLabel: function(tooltipItem) {
+                            return (tooltipItem.datasetIndex ?
+                                "Prs abertos nesse periodo: " + openCount[tooltipItem.index] :
+                                "Prs fechadas nesse periodo: " + closedCount[tooltipItem.index]);
                         }
                     }
                 },
