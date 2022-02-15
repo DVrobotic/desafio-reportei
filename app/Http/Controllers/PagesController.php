@@ -55,8 +55,8 @@ class PagesController extends Controller
 
         //----------------- general/traffic metrics -----------------------//
 
-//        $metrics = self::traffic($request);
-//        dd($metrics);
+        //$metrics = self::traffic($request);
+       // dd($metrics);
 
         //-----------------------------------------------------------//
 
@@ -103,8 +103,36 @@ class PagesController extends Controller
 
         //-----------------------------------------------------------//
 
+        //------------ devs commit contribution metric ---------------//
+
+        $commitsBydev = collect(self::getCommitContribution($request, 'reportei', 'reportei'));
+        $totalWeeks = !empty($commitsBydev) ? collect($commitsBydev[0]->weeks)->count() : 0;
+        $commitsByDevData = [
+            'daily' => $commitsBydev->mapWithKeys(fn($dev) => [$dev->author->login => $totalWeeks > 0 ? $dev->total/($totalWeeks*7) : 0]),
+            'weekly' => $commitsBydev->mapWithKeys(fn($dev) => [$dev->author->login => $totalWeeks > 0 ? $dev->total/$totalWeeks : 0]),
+            'total' => $commitsBydev->mapWithKeys(fn($dev) => [$dev->author->login => $dev->total]),
+        ];
+        dd($commitsByDevData);
+        //------------------------------------------------------------//
 
         return view('admin.dashboard', get_defined_vars());
+    }
+
+
+    public static function getCommitContribution(Request $request, $owner, $repo){
+        //getting contributors and their weekly commit timeline
+        //w - Start of the week, given as a Unix timestamp.
+        //a - Number of additions
+        //d - Number of deletions
+        //c - Number of commits
+        $contributors = new GitHubApiRequest
+        (
+            $request->githubUser['nickname'],
+            $request->githubUser['token'],
+            "/repos/{$owner}/{$repo}/stats/contributors",
+        );
+
+        return json_decode($contributors->handle());
     }
 
     public static function plotAxis($time, DateTime $start, DateTime  $end, DateInterval $pace){
@@ -199,7 +227,12 @@ class PagesController extends Controller
 
         //calculating devs contribution, based on prs ownership
         $devsContribution = self::calcTotalPercentage($totalPulls, $pullRequests);
-        return collect($devsContribution)->sortDesc();
+        return
+        [
+            'contribution' => collect($devsContribution)->sortDesc(),
+            'devPrs' => $pullRequests->map(fn($pulls) => $pulls->count()),
+            'total' => $pullRequests->sum(fn($pulls) => $pulls->count()),
+        ];
     }
 
     //algorith to
@@ -381,7 +414,7 @@ class PagesController extends Controller
             '/repos/laravel/laravel/stats/contributors',
         );
 
-         $contributos_json = json_decode($contributors->handle());
+         $contributors_json = json_decode($contributors->handle());
 
         //gets the participation metric, its purpose is to compare the owner and all members commit activity in the last 52 weeks
         $participation = new GitHubApiRequest
@@ -460,7 +493,7 @@ class PagesController extends Controller
 
          $traffic_clones_json = json_decode($traffic_clones->handle());
 
-        return get_defined_vars();
+        return $contributors_json;
     }
 
     public static function pullRequests(Request $request){

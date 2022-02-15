@@ -6,6 +6,13 @@
     <div class="my-5 pb-5">
         <h4>Contribuição por devs em prs</h4>
         <canvas class="my-4" id="devsChart"></canvas>
+        <h5>Totat de pull requests por dev</h5>
+        @foreach($devsContribution['devPrs'] as $key => $value)
+            <div class="d-block">
+                <label class="d-inline">{{ $key }} : </label>
+                <div class="d-inline">{{ $value }}</div>
+            </div>
+        @endforeach
     </div>
     <div class="mt-4">
         <h4>tempo medio de merge total: {{ $time['allPulls']['times'] }}</h4>
@@ -30,10 +37,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
     <script>
         const doughnutData = {
-            labels: {!! json_encode($devsContribution->keys()) !!},
+            labels: {!! json_encode($devsContribution['contribution']->keys()) !!},
             datasets: [{
                 label: 'Contribuição em Pull Requests por dev',
-                data: {!! json_encode($devsContribution->values()) !!},
+                data: {!! json_encode($devsContribution['contribution']->values()) !!},
                 backgroundColor: [
                     'rgb(255, 99, 132)',
                     'rgb(54, 162, 235)',
