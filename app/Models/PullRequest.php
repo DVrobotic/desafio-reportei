@@ -28,7 +28,7 @@ class PullRequest extends Model
     public static function scopeIntersection($query, int $start, int $end){
         return $query
             ->where('created_at', '<' , $end) #pr created before the timeline starts
-            ->notClosedBefore($start) ; #and is not closed before the start
+            ->notClosedBefore($start); #and is not closed before the start
     }
 
     //get all prs that are not closed before the time passed, if its open it should be included too
@@ -41,7 +41,6 @@ class PullRequest extends Model
                     ->where('open', false)
                     ->where('closed_at', '>', $start); #if it closed after the start and it started before, there must be an intersection
             });
-
     }
 
     public static function scopeOnlyWithin($query, int $start, int $end){

@@ -15,5 +15,3 @@ C
 composer.json,3\9\3957b91a0d8450cea0115cfd5af69eac90d75897
 ]
 -app/Http/Controllers/Auth/LoginController.php,d\2\d2f6ed6918131d406f7abde65d228bce0ec7f88c
-M
-app/Jobs/GitHubApiRequest.php,3\4\3409a219b1b0519dddba8b8dcc654942c4a0f0ec

@@ -70,7 +70,7 @@ class PagesController extends Controller
 
         //--------------------- pull requests -----------------------//
 
-//       $pullRequests = self::savePrsToDatabase($request, 'reportei', 'generator3');
+       //$pullRequests = self::savePrsToDatabase($request, 'reportei', 'generator3');
 //       dd('teste');
 
         //-----------------------------------------------------------//
@@ -82,10 +82,16 @@ class PagesController extends Controller
 
         //-----------------------------------------------------------//
 
+        //------------ saving commits to db ------------------------//
+
+        self::saveCommitsToDatabase($request, 'reportei', 'reportei');
+
+        //-----------------------------------------------------------//
+
         //------- calculating average pull request merge time -------//
-        $start = (new DateTime("-30 days  11:59:59pm"));
+        $start = (new DateTime("-10 years  11:59:59pm"));
         $end = (new DateTime("now"));
-        $pace = new DateInterval('P1D');
+        $pace = new DateInterval('P1Y');
         $time = self::prAverageTime(['reportei/reportei', 'reportei/generator3'], $start, $end);
         $data = self::plotAxis($time, $start, $end, $pace);
 
@@ -112,7 +118,7 @@ class PagesController extends Controller
             'weekly' => $commitsBydev->mapWithKeys(fn($dev) => [$dev->author->login => $totalWeeks > 0 ? $dev->total/$totalWeeks : 0]),
             'total' => $commitsBydev->mapWithKeys(fn($dev) => [$dev->author->login => $dev->total]),
         ];
-        dd($commitsByDevData);
+
         //------------------------------------------------------------//
 
         return view('admin.dashboard', get_defined_vars());
@@ -154,7 +160,7 @@ class PagesController extends Controller
         //making the pull requests groupings in each day
         //making so both are different datasets and can be displayed uniquely in chart js
         $closedPullsCollection = self::configYforClosing($pulls, $period); #closed prs grouping
-        $openPullsCollection = self::configYforOpening($pulls, $period); #open prs grouping
+        $openPullsCollection = self::configYforOpening($pulls, $period, $end); #open prs grouping
 
 
         //returning the sum of the dynamic merge time on the pulls
@@ -166,7 +172,6 @@ class PagesController extends Controller
             'open' => $openPullsCollection->map(fn($pulls) => $pulls->count()),
             'closed' => $closedPullsCollection->map(fn($pulls) => $pulls->count())
         ];
-
         return compact('dateArray', 'mergeClosedDateArray', 'mergeOpenDateArray', 'pullsCount');
     }
 
@@ -188,15 +193,16 @@ class PagesController extends Controller
         );
     }
 
-    public static function configYforOpening($pulls, $period){
+    public static function configYforOpening($pulls, $period, DateTime $end){
         //using collection map function to filter and compare all dates in period only for open ones
         //using their creation time as the parameter
+        $end = $end->getTimestamp();
         $format = ($period->getDateInterval()->y ? 'Y' : ($period->getDateInterval()->m ? 'm-Y' : "d-m-Y"));
         return collect($period)->map
         (
             fn($date)
             => $pulls->filter(fn($pull)
-            => $pull->open && date($format, $pull->created_at) == $date->format($format))
+            => ($pull->open || $pull->closed_at > $end) && date($format, $pull->created_at) == $date->format($format))
         );
     }
 
@@ -274,6 +280,44 @@ class PagesController extends Controller
         $members_json = $members_request->handle();
 
         return get_defined_vars();
+    }
+    public static function saveCommitsToDatabase(Request $request, $owner,$repo)
+    {
+        $commits = [];
+        $index = 0;
+        do{
+            $pr_request = new GitHubApiRequest
+            (
+                $request->githubUser['nickname'],
+                $request->githubUser['token'],
+                "/repos/{$owner}/{$repo}/commits?page={$index}&per_page=100",
+            );
+            $commits_json = $pr_request->handle();
+            $commits_array = json_decode($commits_json);
+            if(!empty($commits_array)){
+                $commits = array_merge($commits, $commits_array);
+            }
+            $index++;
+        }while(!empty($commits_array));
+
+        foreach($commits as $commit)
+        {
+            dd($commit);
+            $created_at = strtotime($commit->created_at);
+            $pr_owner = $commit->author->login;
+
+            PullRequest::updateOrCreate
+            ([
+                'created_at' => $created_at,
+                'owner' => $pr_owner,
+                'repo' => $owner . '/' . $repo,
+            ],
+            [
+                'created_at' => $created_at,
+                'owner' => $pr_owner,
+                'repo' => $owner . '/' . $repo,
+            ]);
+        }
     }
 
     public static function savePrsToDatabase(Request $request, $owner,$repo)
