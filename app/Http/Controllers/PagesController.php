@@ -18,11 +18,6 @@ use phpDocumentor\Reflection\Types\Collection;
 class PagesController extends Controller
 {
 
-    /**
-     * Show the application dashboard.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
-     */
     public function home()
     {
         return view('auth.login');
@@ -30,67 +25,10 @@ class PagesController extends Controller
 
     public function dashboard(Request $request)
     {
-        //----------------- user,search,general requests -----------------------//
-
-        //$general = self::general_requests($request);
-
-        //-----------------------------------------------------------//
-
-
-
-        //----------------- organizations requests -----------------------//
-
-        //$organizations = self::public_org_files($request);
-
-        //-----------------------------------------------------------//
-
-
-
-        //----------------- webhooks requests -----------------------//
-
-        //$webhooks = self::webhookCrud($request);
-
-        //-----------------------------------------------------------//
-
-
-
-        //----------------- general/traffic metrics -----------------------//
-
-        //$metrics = self::traffic($request);
-       // dd($metrics);
-
-        //-----------------------------------------------------------//
-
-        //--------------------- pull requests -----------------------//
-
-//        $pullRequests = self::pullRequests($request);
-//
-//        dd($pullRequests);
-
-        //-----------------------------------------------------------//
-
-        //--------------------- pull requests -----------------------//
-
-      // $pullRequests = self::savePrsToDatabase($request, 'reportei', 'generator3');
-//       dd('teste');
-
-        //-----------------------------------------------------------//
-
-        //------------------------ teams ---------------------------//
-
-//        $team = self::teams($request);
-//        dd($team);
-
-        //-----------------------------------------------------------//
-
-        //------------ saving commits to db ------------------------//
-
-        //self::saveCommitsToDatabase($request, 'reportei', 'reportei');
-
-        //-----------------------------------------------------------//
-
 
         //****************************** CHARTS *********************************//
+
+        //setting up start date, end date and period with its pace
         $start = (new DateTime("-2 months  11:59:59pm"));
         $end = (new DateTime("now"));
         $pace = new DateInterval('P1D');
@@ -104,90 +42,9 @@ class PagesController extends Controller
         //dates axis, formatted
         $dateArray = self::configX($period);
 
-        //getting all commits that are eligible to the timeline
-        $commitQuery = Commit::within($start, $end);
+        //---------------- plotting commits ------------------//
 
-        //commits collection
-        $commits = $commitQuery->get();
-
-        //plotting commits to respective date
-        $commitsAxis = self::configYCommits($commits, $period);
-
-        //commits grouped
-        $commitByDevs = $commitQuery->get()->groupBy('owner');
-
-        //keys = devs / value = total commits by dev
-        $totalCommitsByDev = $commitByDevs->map(fn($group) => $group->count());
-
-        //getting the devs that worked in the timeline
-        $devs = $commitByDevs->keys();
-
-        //grouping by the devs on the timeline
-        $commitsGroupCount = $commitsAxis->map
-        (
-            //iterating through the DateInterval commit groupings
-            function($commitsByDate) use ($devs)
-            {
-                //groupBy of commits ownership
-                $group =  ($commitsByDate->groupBy('owner'));
-
-                //iterating to count them and adding devs that weren't on that day to use them on datasets
-                return $devs->mapWithKeys(fn($dev) =>
-                [
-                    $dev => isset($group[$dev]) ? $group[$dev]->count() : 0
-                ]);
-            }
-        );
-
-
-        $devsCommitActivity = [];
-        $interval = $end->getTimestamp() - $start->getTimestamp();
-
-        $days = $interval/(3600*24);
-        $weeks = $days/7;
-        $months = $days/30;
-
-        if($interval > 0)
-        {
-            $devsCommitActivity = $totalCommitsByDev->map
-            (fn($value) =>
-            [
-                'daily' => $value/$days,
-                'weekly' => $value/$weeks,
-                'monthly' => $value/$months
-            ]
-            );
-        }
-
-        $devsDatasets = [];
-        $devsColors =
-        [
-
-        ];
-        foreach($devs as $dev){
-            array_push($devsDatasets,
-            [
-                'label' => $dev,
-                'backgroundColor' => "#". dechex(rand(0,10000000)) . "33",  //33 is for 0.2 opacity
-                'borderColor' => '#' . dechex(rand(0,10000000)) . "33",
-                'data' => $commitsGroupCount->pluck($dev),
-            ]);
-        }
-
-        $commitData =
-        [
-            'commitArray' => $commitsAxis->toArray(),
-            "commitCount" => $commitsAxis->map(fn($commitGroup) => $commitGroup->count())->toArray(),
-            "commitsGroupCountValues" => $commitsGroupCount->map(fn ($commitGroup) => $commitGroup->values())->toArray(),
-            "commitsGroupCountKeys" => $commitsGroupCount->map(fn ($commitGroup) => $commitGroup->keys())->toArray(),
-            "commitsByDev" => $totalCommitsByDev->toArray(),
-            "devsCommitActivity" => $devsCommitActivity,
-            "devs" => $devs,
-            'devsDatasets' => $devsDatasets,
-        ];
-
-        //------------ plotting commits ------------------------//
-
+        $commitData = self::getCommitsPlotted($period);
 
         //-----------------------------------------------------------//
 
@@ -210,8 +67,73 @@ class PagesController extends Controller
 
         //-----------------------------------------------------------//
 
-        //------------ devs commit contribution metric ---------------//
+        //**********************************************************************************//
 
+        return view('admin.dashboard', get_defined_vars());
+    }
+
+    public static function getCommitsPlotted(DatePeriod $period){
+        $commitInfo = self::getCommitsInfo($period);
+
+        //keys = devs / value = total commits by dev
+        $totalCommitsByDev = $commitInfo['groupByDevs']->map(fn($group) => $group->count());
+
+        //getting the devs that worked in the timeline
+        $devs = $commitInfo['groupByDevs']->keys();
+
+        //grouping by the devs on the timeline
+        $commitsGroupCount = self::getCommitCountGroup($commitInfo['axis'], $devs);
+
+        return
+        [
+            "devs" => $devs,
+            'commitArray' => $commitInfo['groupByDevs']->toArray(),
+            "commitCount" => $commitInfo['groupByDevs']->map(fn($commitGroup) => $commitGroup->count())->toArray(),
+            "commitsGroupCountValues" => $commitsGroupCount->map(fn ($commitGroup) => $commitGroup->values())->toArray(),
+            "commitsGroupCountKeys" => $commitsGroupCount->map(fn ($commitGroup) => $commitGroup->keys())->toArray(),
+            "commitsByDev" => $totalCommitsByDev->toArray(),
+            "devsCommitActivity" => self::getDevCommitActivity($totalCommitsByDev, $period),
+            'devsDatasets' => self::getDevDataset($commitsGroupCount, $devs),
+        ];
+    }
+
+    public static function getCommitsInfo(DatePeriod $period){
+
+        //setting up dates
+        $start = $period->getStartDate();
+        $end = $period->getEndDate();
+
+        //getting all commits that are eligible to the timeline
+        $commitQuery = Commit::within($start, $end);
+
+        //commits collection
+        $commits = $commitQuery->get();
+
+        return
+        [
+            'axis' =>  self::configYCommits($commits, $period), //plotting commits to respective date
+            'groupByDevs' => $commitQuery->get()->groupBy('owner'), //commits grouped
+        ];
+    }
+
+    public static function getCommitCountGroup($commitsAxis, $devs){
+        return $commitsAxis->map
+        (
+        //iterating through the DateInterval commit groupings
+            function($commitsByDate) use ($devs)
+            {
+                //groupBy of commits ownership
+                $group =  ($commitsByDate->groupBy('owner'));
+
+                //iterating to count them and adding devs that weren't on that day to use them on datasets
+                return $devs->mapWithKeys(fn($dev) =>
+                [
+                    $dev => isset($group[$dev]) ? $group[$dev]->count() : 0
+                ]);
+            }
+        );
+    }
+    public static function getContributorsMetric(Request $request){
         $commitsBydev = collect(self::getCommitContribution($request, 'reportei', 'reportei'));
         $totalWeeks = !empty($commitsBydev) ? collect($commitsBydev[0]->weeks)->count() : 0;
         $commitsByDevData = [
@@ -219,12 +141,54 @@ class PagesController extends Controller
             'weekly' => $commitsBydev->mapWithKeys(fn($dev) => [$dev->author->login => $totalWeeks > 0 ? $dev->total/$totalWeeks : 0]),
             'total' => $commitsBydev->mapWithKeys(fn($dev) => [$dev->author->login => $dev->total]),
         ];
+        return get_defined_vars();
+    }
 
-        //------------------------------------------------------------//
+    public static function getDevDataset($commitsGroupCount, $devs): array
+    {
+        $devsDatasets = [];
 
-        //**********************************************************************************//
+        foreach($devs as $dev){
+            array_push($devsDatasets,
+                [
+                    'label' => $dev,
+                    'backgroundColor' => "#". dechex(rand(0,10000000)) . "33",  //33 is for 0.2 opacity
+                    'borderColor' => '#' . dechex(rand(0,10000000)) . "33",
+                    'data' => $commitsGroupCount->pluck($dev),
+                ]);
+        }
 
-        return view('admin.dashboard', get_defined_vars());
+        return $devsDatasets;
+    }
+
+    public static function getDevCommitActivity($totalCommitsByDev, DatePeriod $datePeriod): array
+    {
+        //setting up dates
+        $start = $datePeriod->getStartDate();
+        $end = $datePeriod->getEndDate();
+
+        //getting the interval in seconds
+        $interval = $end->getTimestamp() - $start->getTimestamp();
+
+        if($interval > 0)
+        {
+            //days, weeks and months in seconds dividing the interval
+            $days = $interval/(60*60*24);
+            $weeks = $days/7;
+            $months = $days/30;
+
+            //making new associative collection to each dev daily, weekly and monthly commit activity
+            return $totalCommitsByDev->map
+            (fn($value) =>
+            [
+                'daily' => $value/$days,
+                'weekly' => $value/$weeks,
+                'monthly' => $value/$months
+            ]
+            );
+        }
+        return [];
+
     }
 
 
@@ -791,5 +755,72 @@ class PagesController extends Controller
     public static function secondsToTimeStr($inputSeconds){
         $obj = self::secondsToTime($inputSeconds);
         return "{$obj['d']}D {$obj['h']}H {$obj['m']}M {$obj['s']}S";
+    }
+
+    public static function apianalysis(Request $request){
+        //----------------- user,search,general requests -----------------------//
+
+        //$general = self::general_requests($request);
+
+        //-----------------------------------------------------------//
+
+
+
+        //----------------- organizations requests -----------------------//
+
+        //$organizations = self::public_org_files($request);
+
+        //-----------------------------------------------------------//
+
+
+
+        //----------------- webhooks requests -----------------------//
+
+        //$webhooks = self::webhookCrud($request);
+
+        //-----------------------------------------------------------//
+
+
+
+        //----------------- general/traffic metrics -----------------------//
+
+        //$metrics = self::traffic($request);
+        // dd($metrics);
+
+        //-----------------------------------------------------------//
+
+        //--------------------- pull requests -----------------------//
+
+//        $pullRequests = self::pullRequests($request);
+//
+//        dd($pullRequests);
+
+        //-----------------------------------------------------------//
+
+        //--------------------- pull requests -----------------------//
+
+        // $pullRequests = self::savePrsToDatabase($request, 'reportei', 'generator3');
+//       dd('teste');
+
+        //-----------------------------------------------------------//
+
+        //------------------------ teams ---------------------------//
+
+//        $team = self::teams($request);
+//        dd($team);
+
+        //-----------------------------------------------------------//
+
+        //------------ saving commits to db ------------------------//
+
+        //self::saveCommitsToDatabase($request, 'reportei', 'reportei');
+
+        //-----------------------------------------------------------//
+
+        //------------ devs commit contribution metric ---------------//
+
+        //self::getContributorsMetric($request);
+
+        //------------------------------------------------------------//
     }
 }
