@@ -17,9 +17,7 @@ class CreateCommitsTable extends Migration
             $table->id();
             $table->string('owner');
             $table->string('repo')->index();
-            $table->string('owner');
             $table->bigInteger('created_at');
-            $table->timestamps();
         });
     }
 

@@ -70,7 +70,7 @@ class PagesController extends Controller
 
         //--------------------- pull requests -----------------------//
 
-       //$pullRequests = self::savePrsToDatabase($request, 'reportei', 'generator3');
+      // $pullRequests = self::savePrsToDatabase($request, 'reportei', 'generator3');
 //       dd('teste');
 
         //-----------------------------------------------------------//
@@ -84,7 +84,7 @@ class PagesController extends Controller
 
         //------------ saving commits to db ------------------------//
 
-       // self::saveCommitsToDatabase($request, 'reportei', 'reportei');
+        self::saveCommitsToDatabase($request, 'reportei', 'reportei');
 
         //-----------------------------------------------------------//
 
@@ -293,8 +293,7 @@ class PagesController extends Controller
 
         foreach($commits as $commit)
         {
-            dd($commit);
-            $created_at = strtotime($commit->created_at);
+            $created_at = strtotime($commit->commit->committer->date);
             $pr_owner = $commit->author->login;
 
             PullRequest::updateOrCreate
@@ -335,8 +334,7 @@ class PagesController extends Controller
             $created_at = strtotime($pull->created_at);
             $closed_at = strtotime($pull->closed_at);
             $pr_owner = $pull->user->login;
-            $open = $pull->state == 'open';
-            $mergeTime = $open ? strtotime('now') - $created_at : $closed_at - $created_at;
+            $mergeTime = $pull->isOpen() ? strtotime('now') - $created_at : $closed_at - $created_at;
 
             PullRequest::updateOrCreate
             ([
@@ -346,7 +344,6 @@ class PagesController extends Controller
             ],
             [
                 'mergeTime' => $mergeTime,
-                'open' => $open,
                 'closed_at' => $closed_at,
             ]);
         }
