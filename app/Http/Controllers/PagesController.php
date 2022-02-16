@@ -13,7 +13,8 @@ use DateTime;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Request;
 use Auth;
-use phpDocumentor\Reflection\Types\Collection;
+use Illuminate\Support\Collection;
+
 
 class PagesController extends Controller
 {
@@ -83,12 +84,11 @@ class PagesController extends Controller
 
         //grouping by the devs on the timeline
         $commitsGroupCount = self::getCommitCountGroup($commitInfo['axis'], $devs);
-
         return
         [
             "devs" => $devs,
             'commitArray' => $commitInfo['groupByDevs']->toArray(),
-            "commitCount" => $commitInfo['groupByDevs']->map(fn($commitGroup) => $commitGroup->count())->toArray(),
+            "commitCount" => $commitInfo['axis']->map(fn($commitGroup) => $commitGroup->count())->toArray(),
             "commitsGroupCountValues" => $commitsGroupCount->map(fn ($commitGroup) => $commitGroup->values())->toArray(),
             "commitsGroupCountKeys" => $commitsGroupCount->map(fn ($commitGroup) => $commitGroup->keys())->toArray(),
             "commitsByDev" => $totalCommitsByDev->toArray(),
@@ -161,7 +161,7 @@ class PagesController extends Controller
         return $devsDatasets;
     }
 
-    public static function getDevCommitActivity($totalCommitsByDev, DatePeriod $datePeriod): array
+    public static function getDevCommitActivity($totalCommitsByDev, DatePeriod $datePeriod) : Collection
     {
         //setting up dates
         $start = $datePeriod->getStartDate();
@@ -187,7 +187,7 @@ class PagesController extends Controller
             ]
             );
         }
-        return [];
+        return collect([]);
 
     }
 
