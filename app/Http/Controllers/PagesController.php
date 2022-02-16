@@ -85,16 +85,50 @@ class PagesController extends Controller
 
         //------------ saving commits to db ------------------------//
 
-        self::saveCommitsToDatabase($request, 'reportei', 'reportei');
+        //self::saveCommitsToDatabase($request, 'reportei', 'reportei');
+
+        //-----------------------------------------------------------//
+
+
+        //****************************** CHARTS *********************************//
+        $start = (new DateTime("-1 year  11:59:59pm"));
+        $end = (new DateTime("now"));
+        $pace = new DateInterval('P1M');
+
+        $period = new DatePeriod(
+            $start,
+            $pace,
+            $end
+        );
+
+        $dateArray = self::configX($period);
+        $commitQuery = Commit::within($start, $end);
+        $commits = $commitQuery->get();
+        $commitsAxis = self::configYCommits($commits, $period);
+        $commitsGroupCount = $commitsAxis->map
+        (
+            fn($commitsByDate) =>
+                ($commitsByDate->groupBy('owner')
+                ->map(fn($group) => $group->count()))
+        );
+        $commitData =
+        [
+            'commitArray' => $commitsAxis->toArray(),
+            "commitCount" => $commitsAxis->map(fn($commitGroup) => $commitGroup->count())->toArray(),
+            "commitsGroupCountValues" => $commitsGroupCount->map(fn ($commitGroup) => $commitGroup->values())->toArray(),
+            "commitsGroupCountKeys" => $commitsGroupCount->map(fn ($commitGroup) => $commitGroup->keys())->toArray(),
+            "commitsByDev" => $commitQuery->groupByAndCount('owner')->get()->toArray(),
+        ];
+
+        //------------ plotting commits ------------------------//
+
 
         //-----------------------------------------------------------//
 
         //------- calculating average pull request merge time -------//
-        $start = (new DateTime("-14 days  11:59:59pm"));
-        $end = (new DateTime("now"));
-        $pace = new DateInterval('P1D');
+
         $time = self::prAverageTime(['reportei/reportei', 'reportei/generator3'], $start, $end);
-        $data = self::plotAxis($time, $start, $end, $pace);
+        $data = self::plotAxis($time, $period);
 
         $prsOpenBefore = $time['openBefore']['pulls']->values();
         $prsOpenBeforeMergeTime =
@@ -122,6 +156,8 @@ class PagesController extends Controller
 
         //------------------------------------------------------------//
 
+        //**********************************************************************************//
+
         return view('admin.dashboard', get_defined_vars());
     }
 
@@ -142,26 +178,21 @@ class PagesController extends Controller
         return json_decode($contributors->handle());
     }
 
-    public static function plotAxis($time, DateTime $start, DateTime  $end, DateInterval $pace){
+    public static function plotAxis($time, DatePeriod $period){
 
+        $start = $period->getStartDate();
+        $end = $period->getEndDate();
         //getting the intersection pulls request collection
         $pulls = $time['allPulls']['pulls'];
 
         //using native function to get time period
         //time period
-        $period = new DatePeriod(
-            $start,
-            $pace,
-            $end
-        );
 
-        //making the date array to string format
-        $dateArray = self::configX($period)->toArray();
 
         //making the pull requests groupings in each day
         //making so both are different datasets and can be displayed uniquely in chart js
-        $closedPullsCollection = self::configYforClosing($pulls, $period, $end); #closed prs grouping
-        $openPullsCollection = self::configYforOpening($pulls, $period, $end); #open prs grouping
+        $closedPullsCollection = self::configYforClosing($pulls, $period); #closed prs grouping
+        $openPullsCollection = self::configYforOpening($pulls, $period); #open prs grouping
 
 
         //returning the sum of the dynamic merge time on the pulls
@@ -173,7 +204,7 @@ class PagesController extends Controller
             'open' => $openPullsCollection->map(fn($pulls) => $pulls->count()),
             'closed' => $closedPullsCollection->map(fn($pulls) => $pulls->count())
         ];
-        return compact('dateArray', 'mergeClosedDateArray', 'mergeOpenDateArray', 'pullsCount');
+        return compact('mergeClosedDateArray', 'mergeOpenDateArray', 'pullsCount');
     }
 
     public static function configX($period) : \Illuminate\Support\Collection
@@ -182,10 +213,34 @@ class PagesController extends Controller
         return collect($period)->map(fn($date) => $date->format('d-m-Y'));
     }
 
-    public static function configYforClosing($pulls, DatePeriod $period, dateTime $end){
+    public static function getFormat(DatePeriod $period){
+        if($period->getDateInterval()->y){
+            return 'Y';
+        } else if($period->getDateInterval()->m){
+            return 'm-Y';
+        } else{
+            return 'd-m-Y';
+        }
+    }
+
+    public static function configYCommits($commits, DatePeriod $period){
         //using collection map function to filter and compare all dates in period only for closed ones
         //using their closing time as the parameter
-        $format = PullRequest::getFormat($period);
+        $end = $period->getEndDate();
+        $format = self::getFormat($period);
+        return collect($period)->map
+        (
+            fn($date)
+            => $commits->filter(fn($commit)
+            => date($format, $commit->created_at) == $date->format($format))
+        );
+    }
+
+    public static function configYforClosing($pulls, DatePeriod $period){
+        //using collection map function to filter and compare all dates in period only for closed ones
+        //using their closing time as the parameter
+        $end = $period->getEndDate();
+        $format = self::getFormat($period);
         return collect($period)->map
         (
             fn($date)
@@ -194,10 +249,11 @@ class PagesController extends Controller
         );
     }
 
-    public static function configYforOpening($pulls, $period, DateTime $end){
+    public static function configYforOpening($pulls, $period){
         //using collection map function to filter and compare all dates in period only for open ones
         //using their creation time as the parameter
-        $format = PullRequest::getFormat($period);
+        $end = $period->getEndDate();
+        $format = self::getFormat($period);
         return collect($period)->map
         (
             fn($date)

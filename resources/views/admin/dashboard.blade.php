@@ -3,6 +3,9 @@
 @section('title', 'Dashboard')
 
 @section('content')
+    <div class="my-4">
+        <canvas height="200em" id="LineChart"></canvas>
+    </div>
     <div class="my-5 pb-5">
         <h4>Contribuição por devs em prs</h4>
         <canvas class="my-4" id="devsChart"></canvas>
@@ -35,6 +38,54 @@
 
 @push('scripts')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    <script>
+        var commitCount = {!! json_encode($commitData['commitCount']) !!};
+        var xValuesLine = {!! json_encode($dateArray) !!};
+        var devCommitsValues = {!! json_encode($commitData['commitsGroupCountValues']) !!};
+        var devCommitsKeys = {!! json_encode($commitData['commitsGroupCountKeys']) !!};
+
+        const lineData = {
+            labels: xValuesLine,
+            datasets:
+                [{
+                    label: 'Commits',
+                    backgroundColor: "rgb(255, 99, 132, 0.2)",
+                    borderColor: "rgb(255, 99, 132)",
+                    data: commitCount,
+                }]
+        };
+
+        const Lineconfig = {
+            type: 'line',
+            data: lineData,
+            options: {
+                responsive: true,
+                tooltips: {
+                    enabled: true,
+                    mode: 'single',
+                    callbacks: {
+                        title: function (tooltipItems) {
+                            return tooltipItems[0].value + " Commits foram feitos em " + tooltipItems[0].label;
+                        },
+                        label: function (tooltipItems) {
+                            let str = [];
+                            Array.from(devCommitsValues[tooltipItems.index]).forEach(function (value, i) {
+                                if(value > 0){
+                                    let key = devCommitsKeys[tooltipItems.index][i] === '' ? 'Anônimo' : devCommitsKeys[tooltipItems.index][i];
+                                    str.push( key + ": " + value);
+                                }
+                            });
+                            return str;
+                        },
+                    },
+                },
+            }
+        };
+
+        var Linechart = document.getElementById('LineChart').getContext('2d');
+        var LineChart = new Chart(Linechart, Lineconfig);
+
+    </script>
     <script>
         const doughnutData = {
             labels: {!! json_encode($devsContribution['contribution']->keys()) !!},
@@ -76,7 +127,7 @@
     <script>
         var openCount = {!! json_encode($data['pullsCount']['open']) !!};
         var closedCount ={!! json_encode($data['pullsCount']['closed']) !!};
-        var xValues = {!! json_encode($data['dateArray']) !!};
+        var xValues = {!! json_encode($dateArray) !!};
         var closedValues = {!! json_encode($data['mergeClosedDateArray']) !!};
         var openValues = {!! json_encode($data['mergeOpenDateArray']) !!};
         var barColors = ["gray", "blue"];

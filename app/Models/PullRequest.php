@@ -75,13 +75,4 @@ class PullRequest extends Model
         return date($format, $this->created_at) == $date->format($format);
     }
 
-    public static function getFormat(DatePeriod $period){
-        if($period->getDateInterval()->y){
-            return 'Y';
-        } else if($period->getDateInterval()->m){
-            return 'm-Y';
-        } else{
-            return 'd-m-Y';
-        }
-    }
 }
