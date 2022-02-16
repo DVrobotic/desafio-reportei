@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\GitHubApiRequest;
+use App\Models\Commit;
 use App\Models\PullRequest;
 use Carbon\Carbon;
 use Cassandra\Date;
@@ -294,9 +295,9 @@ class PagesController extends Controller
         foreach($commits as $commit)
         {
             $created_at = strtotime($commit->commit->committer->date);
-            $pr_owner = $commit->author->login;
+            $pr_owner = isset($commit->author->login) ? $commit->author->login : '';
 
-            PullRequest::updateOrCreate
+            Commit::updateOrCreate
             ([
                 'created_at' => $created_at,
                 'owner' => $pr_owner,
