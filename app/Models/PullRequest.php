@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use Carbon\Traits\Date;
+use DateInterval;
+use DatePeriod;
 use DateTime;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -17,7 +20,7 @@ class PullRequest extends Model
 
     public function getDynamicMergeTime(int  $start = null, int  $end = null){
         $start = ($this->created_at != 0 && $this->created_at > $start  ? $this->created_at : $start);
-        $end = ($this->closed_at != 0 && $this->closed_at < $end  ? $this->closed_at : $end);
+        $end = (!$this->isOpen() ? $this->closed_at : $end);
         return $end - $start;
     }
 
@@ -28,17 +31,17 @@ class PullRequest extends Model
     public static function scopeIntersection($query, int $start, int $end){
         return $query
             ->where('created_at', '<' , $end) #pr created before the timeline starts
-            ->notClosedBefore($start); #and is not closed before the start
+            ->notClosedBefore($start, $end); #and is not closed before the start
     }
 
     //get all prs that are not closed before the time passed, if its open it should be included too
-    public static function scopeNotClosedBefore($query, int $start)
+    public static function scopeNotClosedBefore($query, int $start, int $end)
     {
         return $query
-            ->where('open', true) #if its open, it has no closing time, therefore most be closed after
-            ->orWhere(function($query) use ($start){ #closure to make sure only closed ones are being counted in
+            ->open($end, true) #if its open, it has no closing time, therefore most be closed after
+            ->orWhere(function($query) use ($start, $end){ #closure to make sure only closed ones are being counted in
                 return $query
-                    ->where('open', false)
+                    ->open($end, false)
                     ->where('closed_at', '>', $start); #if it closed after the start and it started before, there must be an intersection
             });
     }
@@ -47,14 +50,38 @@ class PullRequest extends Model
         return $query->where('created_at', ">=", $start)->where("created_at", "<=", $end);
     }
 
-    //returns all closed prs relatively to the max time passed
-    public static function scopeClosed($query, int $end){
-        return $query
-            ->where('open', false)
-            ->where('closed_at', '<=', $end);
-    }
-
     public static function scopeOr($query, callable $closure, array $args){
         return $query->orWhere(fn($query) => $query->closure(...$args));
+    }
+
+    public function isOpen(Datetime|int $end = null) : bool{
+        $end = $end ?? strtotime('now');
+        if($end instanceof DateTime){
+            $end = $end->getTimestamp();
+        }
+        return $this->closed_at == 0 || $this->closed_at >= $end;
+
+    }
+
+    public static function scopeOpen($query, int $end, bool $open){
+        if($open){
+            return $query->where("closed_at", '=', 0)->orWhere('closed_at', '>=', $end);
+        }
+        return $query->where("closed_at", '!=', 0)->where('closed_at', '<=', $end);
+    }
+
+
+    public function dateMatches(Datetime $date, string $format){
+        return date($format, $this->created_at) == $date->format($format);
+    }
+
+    public static function getFormat(DatePeriod $period){
+        if($period->getDateInterval()->y){
+            return 'Y';
+        } else if($period->getDateInterval()->m){
+            return 'm-Y';
+        } else{
+            return 'd-m-Y';
+        }
     }
 }

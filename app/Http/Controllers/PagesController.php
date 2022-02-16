@@ -84,14 +84,14 @@ class PagesController extends Controller
 
         //------------ saving commits to db ------------------------//
 
-        self::saveCommitsToDatabase($request, 'reportei', 'reportei');
+       // self::saveCommitsToDatabase($request, 'reportei', 'reportei');
 
         //-----------------------------------------------------------//
 
         //------- calculating average pull request merge time -------//
-        $start = (new DateTime("-10 years  11:59:59pm"));
+        $start = (new DateTime("-14 days  11:59:59pm"));
         $end = (new DateTime("now"));
-        $pace = new DateInterval('P1Y');
+        $pace = new DateInterval('P1D');
         $time = self::prAverageTime(['reportei/reportei', 'reportei/generator3'], $start, $end);
         $data = self::plotAxis($time, $start, $end, $pace);
 
@@ -159,7 +159,7 @@ class PagesController extends Controller
 
         //making the pull requests groupings in each day
         //making so both are different datasets and can be displayed uniquely in chart js
-        $closedPullsCollection = self::configYforClosing($pulls, $period); #closed prs grouping
+        $closedPullsCollection = self::configYforClosing($pulls, $period, $end); #closed prs grouping
         $openPullsCollection = self::configYforOpening($pulls, $period, $end); #open prs grouping
 
 
@@ -181,45 +181,40 @@ class PagesController extends Controller
         return collect($period)->map(fn($date) => $date->format('d-m-Y'));
     }
 
-    public static function configYforClosing($pulls, DatePeriod $period){
+    public static function configYforClosing($pulls, DatePeriod $period, dateTime $end){
         //using collection map function to filter and compare all dates in period only for closed ones
         //using their closing time as the parameter
-        $format = ($period->getDateInterval()->y ? 'Y' : ($period->getDateInterval()->m ? 'm-Y' : "d-m-Y"));
+        $format = PullRequest::getFormat($period);
         return collect($period)->map
         (
             fn($date)
             => $pulls->filter(fn($pull)
-            => !$pull->open && date($format, $pull->closed_at) == $date->format($format))
+            => !$pull->isOpen($end) && date($format, $pull->closed_at) == $date->format($format))
         );
     }
 
     public static function configYforOpening($pulls, $period, DateTime $end){
         //using collection map function to filter and compare all dates in period only for open ones
         //using their creation time as the parameter
-        $end = $end->getTimestamp();
-        $format = ($period->getDateInterval()->y ? 'Y' : ($period->getDateInterval()->m ? 'm-Y' : "d-m-Y"));
+        $format = PullRequest::getFormat($period);
         return collect($period)->map
         (
             fn($date)
             => $pulls->filter(fn($pull)
-            => ($pull->open || $pull->closed_at > $end) && date($format, $pull->created_at) == $date->format($format))
+            => $pull->isOpen($end) && $pull->dateMatches($date, $format))
         );
     }
 
 
     public static function getGroupMergetime($pulls, $start, $end) : callable{
         //return closure for the average merge time for each day
-        return fn($pulls)
-        => $pulls->sum(fn($pull) => $pull
-                ->getDynamicMergeTime($start->getTimestamp(), $end->getTimestamp())
-            ) /
-        ($pulls->count() > 0 ? $pulls->count() : 1);
+        return function($pulls) use ($start, $end){
+            $total = $pulls->count();
+            return $pulls->sum(fn($pull) =>
+                $pull->getDynamicMergeTime($start->getTimestamp(), $end->getTimestamp())) / ($total > 0 ? $total : 1);
+        };
     }
 
-    /**
-     * @param DateTime $
-     * @return \Illuminate\Support\Collection
-     */
     public static function devsContribution(?bool $state, DateTime $start = null, DateTime  $end = null){
         //making so the datetime becomes a unix timestamp
         $start = $start != null ? $start->getTimestamp() : strtotime("0000-00-00 00:00:00");
@@ -237,7 +232,7 @@ class PagesController extends Controller
         [
             'contribution' => collect($devsContribution)->sortDesc(),
             'devPrs' => $pullRequests->map(fn($pulls) => $pulls->count()),
-            'total' => $pullRequests->sum(fn($pulls) => $pulls->count()),
+            'total' => $totalPulls,
         ];
     }
 
@@ -271,13 +266,8 @@ class PagesController extends Controller
         $team_json = $team_request->handle();
         $members_url = str_replace('{/member}', '', json_decode($team_json)[0]->members_url);
 
-        $members_request = new GitHubApiRequest
-        (
-            $request->githubUser['nickname'],
-            $request->githubUser['token'],
-            $members_url,
-        );
-        $members_json = $members_request->handle();
+        $team_request->changeRequest($members_url);
+        $members_json =  $team_request->handle();
 
         return get_defined_vars();
     }
@@ -292,6 +282,7 @@ class PagesController extends Controller
                 $request->githubUser['token'],
                 "/repos/{$owner}/{$repo}/commits?page={$index}&per_page=100",
             );
+
             $commits_json = $pr_request->handle();
             $commits_array = json_decode($commits_json);
             if(!empty($commits_array)){
@@ -377,7 +368,7 @@ class PagesController extends Controller
         $allPulls = $pullQuery->get();
 
         //using custom scope to get only closed ones
-        $onlyClosed = $pullQuery->closed($end)->get();
+        $onlyClosed = $pullQuery->open($end, false)->get();
 
         //getting only the pulls created within the start and end dates,
         $onlyWithin = $allPulls->where('created_at', '>', $start);
@@ -424,6 +415,14 @@ class PagesController extends Controller
     }
 
     public static function traffic(Request $request){
+
+        $traffic_request = new GitHubApiRequest
+        (
+            $request->githubUser['nickname'],
+            $request->githubUser['token'],
+            ''
+        );
+
         //pay attention as the information is cashed and can be delayed, so a queue with error tolerance
         //is advised, as the first our second request might now receive the information immediately,
         // the first request starts the job in the github api, when its done, we can retrieve the information
@@ -435,15 +434,8 @@ class PagesController extends Controller
         // 0 => timestamp in unix
         // 1 => number of additions pushed to a repository.
         // 2 => number of deletions pushed to a repository.
-        $code_frequency = new GitHubApiRequest
-        (
-            $request->githubUser['nickname'],
-            $request->githubUser['token'],
-            '/repos/reportei/reportei/stats/code_frequency'
-        );
 
-
-        //$code_frequency_json = $code_frequency->handle();
+        //$code_frequency_json = $traffic_request->handle('/repos/reportei/reportei/stats/code_frequency');
 
 
         //getting contributors and their weekly commit timeline
@@ -451,24 +443,11 @@ class PagesController extends Controller
         //a - Number of additions
         //d - Number of deletions
         //c - Number of commits
-        $contributors = new GitHubApiRequest
-        (
-            $request->githubUser['nickname'],
-            $request->githubUser['token'],
-            '/repos/laravel/laravel/stats/contributors',
-        );
+        $contributors_json = json_decode($traffic_request->handle('/repos/laravel/laravel/stats/contributors'));
 
-         $contributors_json = json_decode($contributors->handle());
 
-        //gets the participation metric, its purpose is to compare the owner and all members commit activity in the last 52 weeks
-        $participation = new GitHubApiRequest
-        (
-            $request->githubUser['nickname'],
-            $request->githubUser['token'],
-            '/repos/reportei/reportei/stats/participation'
-        );
 
-        $participation_json = json_decode($participation->handle());
+        $participation_json = json_decode($traffic_request->handle('/repos/reportei/reportei/stats/participation'));
 
         //This endpoint will return all community profile metrics, including an overall health score,
         // repository description, the presence of documentation, detected code of conduct, detected license,
@@ -478,14 +457,8 @@ class PagesController extends Controller
         // if all four documents are present, then the health_percentage is 100. If only one is present,
         // then the health_percentage is 25.
         //content_reports_enabled is only returned for organization-owned repositories.
-        $community = new GitHubApiRequest
-        (
-            $request->githubUser['nickname'],
-            $request->githubUser['token'],
-            '/repos/DVrobotic/desafio-reportei/community/profile',
-        );
 
-        $community_json = json_decode($community->handle());
+        $community_json = json_decode($traffic_request->handle('/repos/DVrobotic/desafio-reportei/community/profile'));
         //-----------------------------------------------------------//
 
 
@@ -495,47 +468,21 @@ class PagesController extends Controller
         // $community_json = $community->handle();
 
         //Get the top 10 referrers over the last 14 days.
-        $traffic_referreers = new GitHubApiRequest
-        (
-            $request->githubUser['nickname'],
-            $request->githubUser['token'],
-            '/repos/reportei/reportei/traffic/popular/referrers'
-        );
-
-        $traffic_referreers_json = json_decode($traffic_referreers->handle());
+        $traffic_referreers_json = json_decode($traffic_request->handle('/repos/reportei/reportei/traffic/popular/referrers'));
 
 
         //Get the top 10 popular contents over the last 14 days.
-        $traffic_paths = new GitHubApiRequest
-        (
-            $request->githubUser['nickname'],
-            $request->githubUser['token'],
-            '/repos/reportei/reportei/traffic/popular/paths'
-        );
-
-        $traffic_paths_json = json_decode($traffic_paths->handle());
+        $traffic_paths_json = json_decode($traffic_request->handle('/repos/reportei/reportei/traffic/popular/paths'));
 
         //Get the total number of views and breakdown per day or week for the last 14 days.
         // Timestamps are aligned to UTC midnight of the beginning of the day or week.
         // Week begins on Monday.
-        $traffic_views = new GitHubApiRequest
-        (
-            $request->githubUser['nickname'],
-            $request->githubUser['token'],
-            '/repos/reportei/reportei/traffic/views'
-        );
-
-         $traffic_views_json = json_decode($traffic_views->handle());
 
 
-        $traffic_clones = new GitHubApiRequest
-        (
-            $request->githubUser['nickname'],
-            $request->githubUser['token'],
-            '/repos/reportei/reportei/traffic/clones'
-        );
+         $traffic_views_json = json_decode($traffic_request->handle('/repos/reportei/reportei/traffic/views'));
 
-         $traffic_clones_json = json_decode($traffic_clones->handle());
+
+         $traffic_clones_json = json_decode($traffic_request->handle('/repos/reportei/reportei/traffic/clones'));
 
         return $contributors_json;
     }
@@ -556,20 +503,9 @@ class PagesController extends Controller
             $comments_url = $json->comments_url;
             $review_comments_url = $json->review_comments_url;
 
-            $comments_request = new GitHubApiRequest
-            (
-                $request->githubUser['nickname'],
-                $request->githubUser['token'],
-                $comments_url
-            );
-            $comments_json = json_decode($comments_request->handle());
-            $review_comments_request = new GitHubApiRequest
-            (
-                $request->githubUser['nickname'],
-                $request->githubUser['token'],
-                $review_comments_url,
-            );
-            $review_comments_json = json_decode($review_comments_request->handle());
+            $comments_json = json_decode($pulls->handle($comments_url));
+
+            $review_comments_json = json_decode($pulls->handle($review_comments_url));
             if(count($comments_json) != 0 || count($review_comments_json) != 0){
                 dd($comments_json, $review_comments_json);
             }

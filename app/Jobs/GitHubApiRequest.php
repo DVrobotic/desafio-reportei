@@ -30,6 +30,10 @@ class GitHubApiRequest implements ShouldQueue
         $this->client = new Client(['base_uri' => self::URL]);
     }
 
+    public function changeRequest(string $requestType){
+        $this->data['requestType'] = $requestType;
+    }
+
     public function pulls($owner, $repo, $state = 'open', $query = '', $branch = null){
         $query .= "state=" . $state . '&';
         $query .= $branch != null ? ("base=" . $branch . '&') : '';
@@ -47,11 +51,11 @@ class GitHubApiRequest implements ShouldQueue
         }
     }
 
-    public function handle()
+    public function handle(string $requestType = null)
     {
         try {
             if($this->data['auth']){
-                $response = $this->client->request('GET', $this->data['requestType'],
+                $response = $this->client->request('GET', $requestType ?? $this->data['requestType'],
                     [
                         'auth' => [$this->data['username'], $this->data['token']],
                         'verify' => false,
