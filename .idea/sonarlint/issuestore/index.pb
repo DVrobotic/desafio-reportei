@@ -15,5 +15,3 @@ C
 -app/Http/Controllers/Auth/LoginController.php,d\2\d2f6ed6918131d406f7abde65d228bce0ec7f88c
 n
 >database/migrations/2022_02_15_194856_create_commits_table.php,3\8\38f4f1efc217b790cfb43136bf25d92b4353647a
-t
-Ddatabase/migrations/2022_02_11_141756_create_pull_requests_table.php,a\f\af93e70a100cbe55847fb5cf8e293756af205534
