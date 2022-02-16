@@ -4,7 +4,19 @@
 
 @section('content')
     <div class="my-4">
+        <h4>Commits por dia (reportei - master)</h4>
         <canvas height="200em" id="LineChart"></canvas>
+    </div>
+    <div class="my-4">
+        <h4>Estatisticas de Commit em (reportei - master)</h4>
+        @foreach($commitData['devsCommitActivity'] as $key => $value)
+            <div class="d-block">
+                <label class="d-inline">{{ $key == '' ? "Anônimo" : $key }} : </label>
+                <div class="d-block">Diária: {{ number_format($value['daily'], 2) }}</div>
+                <div class="d-block">Semanal: {{ number_format($value['weekly'], 2) }}</div>
+                <div class="d-block">Mensal: {{ number_format($value['monthly'], 2) }}</div>
+            </div>
+        @endforeach
     </div>
     <div class="my-5 pb-5">
         <h4>Contribuição por devs em prs</h4>
@@ -47,15 +59,18 @@
         const lineData = {
             labels: xValuesLine,
             datasets:
-                [{
+            [
+                {
                     label: 'Commits',
                     backgroundColor: "rgb(255, 99, 132, 0.2)",
                     borderColor: "rgb(255, 99, 132)",
                     data: commitCount,
-                }]
+                },
+                {!! trim(json_encode($commitData['devsDatasets']), '[]') !!}
+            ],
         };
 
-        const Lineconfig = {
+        const lineConfig = {
             type: 'line',
             data: lineData,
             options: {
@@ -68,22 +83,27 @@
                             return tooltipItems[0].value + " Commits foram feitos em " + tooltipItems[0].label;
                         },
                         label: function (tooltipItems) {
-                            let str = [];
-                            Array.from(devCommitsValues[tooltipItems.index]).forEach(function (value, i) {
-                                if(value > 0){
-                                    let key = devCommitsKeys[tooltipItems.index][i] === '' ? 'Anônimo' : devCommitsKeys[tooltipItems.index][i];
-                                    str.push( key + ": " + value);
-                                }
-                            });
-                            return str;
+                            if(tooltipItems.datasetIndex === 0){
+                                let str = [];
+                                Array.from(devCommitsValues[tooltipItems.index]).forEach(function (value, i) {
+                                    if(value > 0){
+                                        let key = devCommitsKeys[tooltipItems.index][i] === '' ? 'Anônimo' : devCommitsKeys[tooltipItems.index][i];
+                                        str.push( key + ": " + value);
+                                    }
+                                });
+                                return str;
+                            }
+                            let dev = devCommitsKeys[tooltipItems.index][tooltipItems.datasetIndex];
+                            let key =  dev === '' ? 'Anônimo' : dev;
+                            return  key + ": " + tooltipItems.value;
                         },
                     },
                 },
             }
         };
 
-        var Linechart = document.getElementById('LineChart').getContext('2d');
-        var LineChart = new Chart(Linechart, Lineconfig);
+        var lineChartElement = document.getElementById('LineChart').getContext('2d');
+        var LineChart = new Chart(lineChartElement, lineConfig);
 
     </script>
     <script>

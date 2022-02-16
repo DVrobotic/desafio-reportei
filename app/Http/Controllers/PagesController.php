@@ -91,9 +91,9 @@ class PagesController extends Controller
 
 
         //****************************** CHARTS *********************************//
-        $start = (new DateTime("-1 year  11:59:59pm"));
+        $start = (new DateTime("-2 months  11:59:59pm"));
         $end = (new DateTime("now"));
-        $pace = new DateInterval('P1M');
+        $pace = new DateInterval('P1D');
 
         $period = new DatePeriod(
             $start,
@@ -101,23 +101,89 @@ class PagesController extends Controller
             $end
         );
 
+        //dates axis, formatted
         $dateArray = self::configX($period);
+
+        //getting all commits that are eligible to the timeline
         $commitQuery = Commit::within($start, $end);
+
+        //commits collection
         $commits = $commitQuery->get();
+
+        //plotting commits to respective date
         $commitsAxis = self::configYCommits($commits, $period);
+
+        //commits grouped
+        $commitByDevs = $commitQuery->get()->groupBy('owner');
+
+        //keys = devs / value = total commits by dev
+        $totalCommitsByDev = $commitByDevs->map(fn($group) => $group->count());
+
+        //getting the devs that worked in the timeline
+        $devs = $commitByDevs->keys();
+
+        //grouping by the devs on the timeline
         $commitsGroupCount = $commitsAxis->map
         (
-            fn($commitsByDate) =>
-                ($commitsByDate->groupBy('owner')
-                ->map(fn($group) => $group->count()))
+            //iterating through the DateInterval commit groupings
+            function($commitsByDate) use ($devs)
+            {
+                //groupBy of commits ownership
+                $group =  ($commitsByDate->groupBy('owner'));
+
+                //iterating to count them and adding devs that weren't on that day to use them on datasets
+                return $devs->mapWithKeys(fn($dev) =>
+                [
+                    $dev => isset($group[$dev]) ? $group[$dev]->count() : 0
+                ]);
+            }
         );
+
+
+        $devsCommitActivity = [];
+        $interval = $end->getTimestamp() - $start->getTimestamp();
+
+        $days = $interval/(3600*24);
+        $weeks = $days/7;
+        $months = $days/30;
+
+        if($interval > 0)
+        {
+            $devsCommitActivity = $totalCommitsByDev->map
+            (fn($value) =>
+            [
+                'daily' => $value/$days,
+                'weekly' => $value/$weeks,
+                'monthly' => $value/$months
+            ]
+            );
+        }
+
+        $devsDatasets = [];
+        $devsColors =
+        [
+
+        ];
+        foreach($devs as $dev){
+            array_push($devsDatasets,
+            [
+                'label' => $dev,
+                'backgroundColor' => "#". dechex(rand(0,10000000)) . "33",  //33 is for 0.2 opacity
+                'borderColor' => '#' . dechex(rand(0,10000000)) . "33",
+                'data' => $commitsGroupCount->pluck($dev),
+            ]);
+        }
+
         $commitData =
         [
             'commitArray' => $commitsAxis->toArray(),
             "commitCount" => $commitsAxis->map(fn($commitGroup) => $commitGroup->count())->toArray(),
             "commitsGroupCountValues" => $commitsGroupCount->map(fn ($commitGroup) => $commitGroup->values())->toArray(),
             "commitsGroupCountKeys" => $commitsGroupCount->map(fn ($commitGroup) => $commitGroup->keys())->toArray(),
-            "commitsByDev" => $commitQuery->groupByAndCount('owner')->get()->toArray(),
+            "commitsByDev" => $totalCommitsByDev->toArray(),
+            "devsCommitActivity" => $devsCommitActivity,
+            "devs" => $devs,
+            'devsDatasets' => $devsDatasets,
         ];
 
         //------------ plotting commits ------------------------//
