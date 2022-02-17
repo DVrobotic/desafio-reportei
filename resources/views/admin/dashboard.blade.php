@@ -56,17 +56,49 @@
         var devCommitsValues = {!! json_encode($commitData['commitsGroupCountValues']) !!};
         var devCommitsKeys = {!! json_encode($commitData['commitsGroupCountKeys']) !!};
 
+        var notIncludedCount = {!! json_encode($commitData['notIncludedCount']) !!};
+        var notIncludedCommitsValues = {!! json_encode($commitData['notIncludedValues']) !!};
+        var notIncludedCommitsKeys = {!! json_encode($commitData['notIncludedKeys']) !!};
+
+        var anonymousCount = {!! json_encode($commitData['anonymousCount']) !!};
+        var anonymousCommitsValues = {!! json_encode($commitData['anonymousValues']) !!};
+        var anonymousCommitsKeys = {!! json_encode($commitData['anonymousKeys']) !!};
+
+        var memberCount = {!! json_encode($commitData['memberCount']) !!};
+        var memberCommitsValues = {!! json_encode($commitData['memberValues']) !!};
+        var memberCommitsKeys = {!! json_encode($commitData['memberKeys']) !!};
+
+
         const lineData = {
+            title: "Commits ao longo do tempo",
             labels: xValuesLine,
             datasets:
             [
                 {
-                    label: 'Commits',
+                    label: 'total',
                     backgroundColor: "rgb(255, 99, 132, 0.2)",
                     borderColor: "rgb(255, 99, 132)",
                     data: commitCount,
                 },
-                {!! trim(json_encode($commitData['devsDatasets']), '[]') !!}
+                {
+                    label: 'Membros',
+                    backgroundColor: "rgb(0, 99, 255, 0.2)",
+                    borderColor: "rgb(0, 99, 255)",
+                    data: memberCount,
+                },
+                {
+                    label: 'não membros',
+                    backgroundColor: "rgb(20, 255, 0, 0.2)",
+                    borderColor:"rgb(20, 255, 0)",
+                    data: notIncludedCount,
+                },
+                {
+                    label: 'Anônimos',
+                    backgroundColor: "rgb(120, 20, 120, 0.2)",
+                    borderColor: "rgb(120, 20, 120)",
+                    data: anonymousCount,
+                },
+{{--                {!! trim(json_encode($commitData['devsDatasets']), '[]') !!}--}}
             ],
         };
 
@@ -79,22 +111,54 @@
                     enabled: true,
                     mode: 'single',
                     callbacks: {
-                        title: function (tooltipItems) {
-                            return tooltipItems[0].value + " Commits foram feitos em " + tooltipItems[0].label;
+                        title: function (tooltipItems, data) {
+                            let datasetName = data.datasets[tooltipItems[0].datasetIndex].label;
+                            return datasetName + ": " + tooltipItems[0].value + " Commits em " + tooltipItems[0].label;
                         },
                         label: function (tooltipItems, data) {
-                            if(tooltipItems.datasetIndex === 0){
+                            let keys;
+                            let values;
+                            let datasetName = data.datasets[tooltipItems.datasetIndex].label;
+
+                            if(tooltipItems.datasetIndex >= 0 && tooltipItems.datasetIndex < 4){
+                                let keys;
+                                let values;
+
+                                switch(tooltipItems.datasetIndex)
+                                {
+                                    case 0:
+                                        keys = devCommitsKeys;
+                                        values = devCommitsValues;
+                                        break;
+                                    case 1:
+                                        keys = memberCommitsKeys;
+                                        values = memberCommitsValues;
+                                        break;
+                                    case 2:
+                                        keys = notIncludedCommitsKeys;
+                                        values = notIncludedCommitsValues;
+                                        break;
+                                    case 3:
+                                        keys = anonymousCommitsKeys;
+                                        values = anonymousCommitsValues;
+                                        break;
+                                }
+
+                                console.log(tooltipItems.datasetIndex, keys, values);
+
                                 let str = [];
-                                Array.from(devCommitsValues[tooltipItems.index]).forEach(function (value, i) {
+
+                                Array.from(values[tooltipItems.index]).forEach(function (value, i) {
                                     if(value > 0){
-                                        let key = devCommitsKeys[tooltipItems.index][i] === '' ? 'Anônimo' : devCommitsKeys[tooltipItems.index][i];
+                                        let key = keys[tooltipItems.index][i] === '' ? 'Anônimo' : keys[tooltipItems.index][i];
                                         str.push( key + ": " + value);
                                     }
                                 });
+
                                 return str;
                             }
-                            let dev = data.datasets[tooltipItems.datasetIndex].label;
-                            let key =  dev === '' ? 'Anônimo' : dev;
+
+                            let key =  datasetName === '' ? 'Anônimo' : datasetName;
                             return  key + ": " + tooltipItems.value;
                         },
                     },

@@ -17,11 +17,15 @@ class CreateGitHubUsersTable extends Migration
             $table->id();
             $table->string('login');
             $table->string('email');
-            $table->string('login_id');
+            $table->string('login_id')->nullable()->index();
             $table->json('name');
             $table->json('name_dates');
             $table->string('organization')->index();
             $table->timestamps();
+        });
+
+        Schema::table('commits', function (Blueprint $table) {
+            $table->foreign('fk_owner_id')->references('login_id')->on('git_hub_users')->onDelete('set null');
         });
     }
 

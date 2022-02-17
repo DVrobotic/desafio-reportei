@@ -13,7 +13,7 @@ class GitHubUser extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'name' => AsArrayObject::class,
-        'name_dates' => AsArrayObject::class,
+        'name' => 'array',
+        'name_dates' => 'array',
     ];
 }

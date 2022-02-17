@@ -9,8 +9,6 @@ R
 "database/factories/UserFactory.php,3\4\3401747fc769758d97931473eab6222bc2abf009
 O
 database/seeders/UserSeeder.php,9\a\9a5fbe4af4b23f69ef07f35a2d8a4d7c75c60797
-C
-app/Models/User.php,a\9\a90f2e50cb06863b54effced365aa5f1fe7d9c88
 ]
 -app/Http/Controllers/Auth/LoginController.php,d\2\d2f6ed6918131d406f7abde65d228bce0ec7f88c
 =
@@ -19,5 +17,17 @@ M
 app/Jobs/GitHubApiRequest.php,3\4\3409a219b1b0519dddba8b8dcc654942c4a0f0ec
 t
 Ddatabase/migrations/2022_02_11_141756_create_pull_requests_table.php,a\f\af93e70a100cbe55847fb5cf8e293756af205534
-E
-app/Models/Commit.php,5\e\5e6d3aabb2066892f5e474e835b2a9ae8d51a85c
+J
+app/Models/PullRequest.php,9\c\9c8079da3394897673d9e6b528c46bf49c44c8a9
+U
+%database/seeders/GitHubUserSeeder.php,e\a\eaa20feb10822899b5e0f184a00d936f77bf1af6
+]
+-app/Http/Requests/UpdateGitHubUserRequest.php,3\c\3c105a2d02dc3d812049a908788ebe050e295bc5
+Q
+!app/Policies/GitHubUserPolicy.php,1\e\1edf497b0f8982190a4b549e5805816e17059d9d
+X
+(database/factories/GitHubUserFactory.php,7\2\72160750914b591595a8c9de83c760e55a440231
+\
+,app/Http/Requests/StoreGitHubUserRequest.php,3\f\3f08b05705a1352f6f47cec36300e6f659143c94
+]
+-app/Http/Controllers/GitHubUserController.php,c\0\c06be1d991022a29bcea3926f43b2dd530cf9606

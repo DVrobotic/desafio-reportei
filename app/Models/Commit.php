@@ -28,4 +28,8 @@ class Commit extends Model
         return $query->groupBy($parameter)->selectRaw("count(*) as total, {$parameter}");
     }
 
+    public function gitHubUser(){
+        return $this->belongsTo(GitHubUser::class, 'fk_owner_id');
+    }
+
 }

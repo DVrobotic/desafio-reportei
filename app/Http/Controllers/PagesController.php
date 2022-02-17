@@ -29,7 +29,7 @@ class PagesController extends Controller
     public function dashboard(Request $request)
     {
 
-        self::apianalysis($request);
+        self::apiAnalysis($request);
 
         //****************************** CHARTS *********************************//
 
@@ -43,6 +43,7 @@ class PagesController extends Controller
             $pace,
             $end
         );
+
 
         //dates axis, formatted
         $dateArray = self::configX($period);
@@ -79,25 +80,55 @@ class PagesController extends Controller
 
     public static function getCommitsPlotted(DatePeriod $period){
         $commitInfo = self::getCommitsInfo($period);
-
         //keys = devs / value = total commits by dev
         $totalCommitsByDev = $commitInfo['groupByDevs']->map(fn($group) => $group->count());
 
-        //getting the devs that worked in the timeline
-        $devs = $commitInfo['groupByDevs']->keys();
+
+        //getting the types of commit authors that worked in the timeline
+        $members = GitHubUser::all()->pluck('login');
+        $anonymous = $commitInfo['anonymous']->keys();
+        $notIncluded = $commitInfo['groupByDevs']->keys()->diff($members);
+        $allSources = $commitInfo['groupByDevs']->keys();
 
         //grouping by the devs on the timeline
-        $commitsGroupCount = self::getCommitCountGroup($commitInfo['axis'], $devs);
+        $commitsGroupCount = self::getCommitCountGroup($commitInfo['axis'], $allSources);
+        $commitGroupCountMember = self::getCommitCountGroup($commitInfo['axis'], $members);
+        $commitGroupCountNotIncluded =  self::getCommitCountGroup($commitInfo['axis'], $notIncluded);
+        $commitGroupCountAnonymous =  self::getCommitCountGroup($commitInfo['axis'], $anonymous, true);
         return
         [
-            "devs" => $devs,
+            "devs" => $allSources,
+            'members' => $members,
+            'notIncluded' => $notIncluded,
+            'anonymous' => $commitInfo['anonymous'],
+
             'commitArray' => $commitInfo['groupByDevs']->toArray(),
+
             "commitCount" => $commitInfo['axis']->map(fn($commitGroup) => $commitGroup->count())->toArray(),
             "commitsGroupCountValues" => $commitsGroupCount->map(fn ($commitGroup) => $commitGroup->values())->toArray(),
             "commitsGroupCountKeys" => $commitsGroupCount->map(fn ($commitGroup) => $commitGroup->keys())->toArray(),
+
+
+            "memberCount" => $commitGroupCountMember->map(fn($day) => $day->sum())->toArray(),
+            "memberValues" => $commitGroupCountMember->map(fn ($commitGroup) => $commitGroup->values())->toArray(),
+            "memberKeys" => $commitGroupCountMember->map(fn ($commitGroup) => $commitGroup->keys())->toArray(),
+
+            "notIncludedCount" => $commitGroupCountNotIncluded->map(fn($day) => $day->sum())->toArray(),
+            "notIncludedValues" => $commitGroupCountNotIncluded->map(fn ($commitGroup) => $commitGroup->values())->toArray(),
+            "notIncludedKeys" => $commitGroupCountNotIncluded->map(fn ($commitGroup) => $commitGroup->keys())->toArray(),
+
+            "anonymousCount" => $commitGroupCountAnonymous->map(fn($day) => $day->sum())->toArray(),
+            "anonymousValues" => $commitGroupCountAnonymous->map(fn ($commitGroup) => $commitGroup->values())->toArray(),
+            "anonymousKeys" => $commitGroupCountAnonymous->map(fn ($commitGroup) => $commitGroup->keys())->toArray(),
+
+            'devsDatasets' => self::getDevDataset($commitsGroupCount, $members),
+            'notIncludedDatasets' => self::getDevDataset($commitGroupCountNotIncluded, $notIncluded),
+            'anonymousDatasets' => self::getDevDataset($commitGroupCountNotIncluded, $anonymous),
+
             "commitsByDev" => $totalCommitsByDev->toArray(),
             "devsCommitActivity" => self::getDevCommitActivity($totalCommitsByDev, $period),
-            'devsDatasets' => self::getDevDataset($commitsGroupCount, $devs),
+
+
         ];
     }
 
@@ -107,27 +138,34 @@ class PagesController extends Controller
         $start = $period->getStartDate();
         $end = $period->getEndDate();
 
-        //getting all commits that are eligible to the timeline
+        //getting all commits that are eligible to the timeline$
         $commitQuery = Commit::within($start, $end);
 
         //commits collection
         $commits = $commitQuery->get();
+        $groupByDevs = $commitQuery->get()->groupBy('owner');
+        $anonymous = isset($groupByDevs['']) ? $groupByDevs['']->groupBy('author') : [];
 
         return
         [
             'axis' =>  self::configYCommits($commits, $period), //plotting commits to respective date
-            'groupByDevs' => $commitQuery->get()->groupBy('owner'), //commits grouped
+            'groupByDevs' => $groupByDevs, //commits grouped
+            'anonymous' => $anonymous,
         ];
     }
 
-    public static function getCommitCountGroup($commitsAxis, $devs){
+    public static function getCommitCountGroup($commitsAxis, $devs, bool $anonymous = false){
         return $commitsAxis->map
         (
         //iterating through the DateInterval commit groupings
-            function($commitsByDate) use ($devs)
+            function($commitsByDate) use ($devs, $anonymous)
             {
                 //groupBy of commits ownership
-                $group =  ($commitsByDate->groupBy('owner'));
+                if(!$anonymous){
+                    $group =  ($commitsByDate->groupBy('owner'));
+                } else{
+                    $group =  ($commitsByDate->where('owner', '')->groupBy('author'));
+                }
 
                 //iterating to count them and adding devs that weren't on that day to use them on datasets
                 return $devs->mapWithKeys(fn($dev) =>
@@ -137,6 +175,7 @@ class PagesController extends Controller
             }
         );
     }
+
     public static function getContributorsMetric(Request $request){
         $commitsBydev = collect(self::getCommitContribution($request, 'reportei', 'reportei'));
         $totalWeeks = !empty($commitsBydev) ? collect($commitsBydev[0]->weeks)->count() : 0;
@@ -443,7 +482,7 @@ class PagesController extends Controller
                 'organization' => $org,
                 'login_id' => $member->id,
                 'name' => [$member->name],
-                'name_dates' => [strtotime('now')],
+                'name_dates' => [strtotime('now')]
             ]);
         }
     }
@@ -472,7 +511,7 @@ class PagesController extends Controller
             $created_at = strtotime($pull->created_at);
             $closed_at = strtotime($pull->closed_at);
             $pr_owner = $pull->user->login;
-            $mergeTime = $pull->isOpen() ? strtotime('now') - $created_at : $closed_at - $created_at;
+            $mergeTime = $pull->state == 'open' ? strtotime('now') - $created_at : $closed_at - $created_at;
 
             PullRequest::updateOrCreate
             ([
@@ -807,7 +846,7 @@ class PagesController extends Controller
         return "{$obj['d']}D {$obj['h']}H {$obj['m']}M {$obj['s']}S";
     }
 
-    public static function apianalysis(Request $request){
+    public static function apiAnalysis(Request $request){
         //----------------- user,search,general requests -----------------------//
 
         //$general = self::general_requests($request);
@@ -848,9 +887,9 @@ class PagesController extends Controller
         //-----------------------------------------------------------//
 
         //--------------------- pull requests -----------------------//
-
-         //$pullRequests = self::savePrsToDatabase($request, 'reportei', 'generator3');
-//       dd('teste');
+//
+//         $pullRequests = self::savePrsToDatabase($request, 'reportei', 'reportei');
+//         dd('teste');
 
         //-----------------------------------------------------------//
 
@@ -870,8 +909,8 @@ class PagesController extends Controller
 
         //----------- saving org members to db ----------------------//
 
-        self::saveOrgMembersToDatabase($request, 'reportei');
-        dd('eu');
+//        self::saveOrgMembersToDatabase($request, 'reportei');
+//        dd('eu');
         //-----------------------------------------------------------//
 
         //------------ devs commit contribution metric ---------------//
