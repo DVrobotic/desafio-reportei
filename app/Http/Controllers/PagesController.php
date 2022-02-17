@@ -93,9 +93,9 @@ class PagesController extends Controller
         //maybe another field for names used or names associated
         $members = $allSources->filter(function($dev)
             {
-                return ['teste' => GithubUser::where('login', $dev)
+                return GithubUser::where('login', $dev)
                     ->orwhereJsonContains('name', $dev)
-                    ->get()->count() > 0];
+                    ->get()->count() > 0;
             }
         );
 
