@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\GitHubApiRequest;
 use App\Models\Commit;
+use App\Models\GitHubUser;
 use App\Models\PullRequest;
 use Carbon\Carbon;
 use Cassandra\Date;
@@ -14,6 +15,7 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Request;
 use Auth;
 use Illuminate\Support\Collection;
+use function Livewire\str;
 
 
 class PagesController extends Controller
@@ -365,7 +367,7 @@ class PagesController extends Controller
     {
         $commits = [];
         $anonymousCommits = [];
-        $index = 0;
+        $index = 1;
         do{
             $pr_request = new GitHubApiRequest
             (
@@ -406,10 +408,50 @@ class PagesController extends Controller
         }
     }
 
+
+    public static function saveOrgMembersToDatabase(Request $request, $org)
+    {
+        $members = [];
+        $index = 1;
+        do{
+            $member_request = new GitHubApiRequest
+            (
+                $request->githubUser['nickname'],
+                $request->githubUser['token'],
+                "/orgs/{$org}/members?page={$index}&per_page=100",
+            );
+
+            $members_json = $member_request->handle();
+            $members_array = json_decode($members_json);
+            if(!empty($members_array)){
+                $members = array_merge($members, $members_array);
+            }
+            $index++;
+        }while(!empty($members_array));
+
+        foreach($members as $member_min_json)
+        {
+            $member = json_decode($member_request->handle($member_min_json->url));
+
+            GitHubUser::updateOrCreate
+            ([
+                'login_id' => $member->id,
+            ],
+            [
+                'login' => $member->login,
+                'email' => $member->email ?? '',
+                'organization' => $org,
+                'login_id' => $member->id,
+                'name' => [$member->name],
+                'name_dates' => [strtotime('now')],
+            ]);
+        }
+    }
+
     public static function savePrsToDatabase(Request $request, $owner,$repo)
     {
         $pulls = [];
-        $index = 0;
+        $index = 1;
         do{
             $pr_request = new GitHubApiRequest
             (
@@ -824,6 +866,12 @@ class PagesController extends Controller
 //        self::saveCommitsToDatabase($request, 'reportei', 'reportei');
 //        dd('teste');
 
+        //-----------------------------------------------------------//
+
+        //----------- saving org members to db ----------------------//
+
+        self::saveOrgMembersToDatabase($request, 'reportei');
+        dd('eu');
         //-----------------------------------------------------------//
 
         //------------ devs commit contribution metric ---------------//
