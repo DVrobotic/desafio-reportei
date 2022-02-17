@@ -85,16 +85,30 @@ class PagesController extends Controller
 
 
         //getting the types of commit authors that worked in the timeline
-        $members = GitHubUser::all()->pluck('login');
-        $anonymous = $commitInfo['anonymous']->keys();
+
+
+        $allSources = $commitInfo['anonymous']->keys()->merge($commitInfo['groupByDevs']->keys());
+
+
+        //maybe another field for names used or names associated
+        $members = $allSources->filter(function($dev)
+            {
+                return ['teste' => GithubUser::where('login', $dev)
+                    ->orwhereJsonContains('name', $dev)
+                    ->get()->count() > 0];
+            }
+        );
+
+        $anonymous =  $commitInfo['anonymous']->keys();
+
         $notIncluded = $commitInfo['groupByDevs']->keys()->diff($members);
-        $allSources = $commitInfo['groupByDevs']->keys();
 
         //grouping by the devs on the timeline
         $commitsGroupCount = self::getCommitCountGroup($commitInfo['axis'], $allSources);
         $commitGroupCountMember = self::getCommitCountGroup($commitInfo['axis'], $members);
         $commitGroupCountNotIncluded =  self::getCommitCountGroup($commitInfo['axis'], $notIncluded);
         $commitGroupCountAnonymous =  self::getCommitCountGroup($commitInfo['axis'], $anonymous, true);
+
         return
         [
             "devs" => $allSources,
@@ -145,7 +159,6 @@ class PagesController extends Controller
         $commits = $commitQuery->get();
         $groupByDevs = $commitQuery->get()->groupBy('owner');
         $anonymous = isset($groupByDevs['']) ? $groupByDevs['']->groupBy('author') : [];
-
         return
         [
             'axis' =>  self::configYCommits($commits, $period), //plotting commits to respective date
@@ -164,7 +177,7 @@ class PagesController extends Controller
                 if(!$anonymous){
                     $group =  ($commitsByDate->groupBy('owner'));
                 } else{
-                    $group =  ($commitsByDate->where('owner', '')->groupBy('author'));
+                    $group =  ($commitsByDate->where('owner', null)->groupBy('author'));
                 }
 
                 //iterating to count them and adding devs that weren't on that day to use them on datasets
@@ -400,6 +413,10 @@ class PagesController extends Controller
         $members_json =  $team_request->handle();
 
         return get_defined_vars();
+    }
+
+    public static function mergeUserToAuthor(GitHubUser $user, $author){
+        $user->update('name', array_merge($user->name, $author));
     }
 
     public static function saveCommitsToDatabase(Request $request, $owner,$repo)
