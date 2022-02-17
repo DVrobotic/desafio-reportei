@@ -13,3 +13,11 @@ C
 app/Models/User.php,a\9\a90f2e50cb06863b54effced365aa5f1fe7d9c88
 ]
 -app/Http/Controllers/Auth/LoginController.php,d\2\d2f6ed6918131d406f7abde65d228bce0ec7f88c
+=
+composer.json,3\9\3957b91a0d8450cea0115cfd5af69eac90d75897
+M
+app/Jobs/GitHubApiRequest.php,3\4\3409a219b1b0519dddba8b8dcc654942c4a0f0ec
+t
+Ddatabase/migrations/2022_02_11_141756_create_pull_requests_table.php,a\f\af93e70a100cbe55847fb5cf8e293756af205534
+E
+app/Models/Commit.php,5\e\5e6d3aabb2066892f5e474e835b2a9ae8d51a85c

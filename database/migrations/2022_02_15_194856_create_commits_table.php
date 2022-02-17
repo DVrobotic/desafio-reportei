@@ -16,6 +16,8 @@ class CreateCommitsTable extends Migration
         Schema::create('commits', function (Blueprint $table) {
             $table->id();
             $table->string('owner');
+            $table->integer('owner_id');
+            $table->string('author');
             $table->string('repo')->index();
             $table->bigInteger('created_at');
         });

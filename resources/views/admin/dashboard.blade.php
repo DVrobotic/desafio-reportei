@@ -82,7 +82,7 @@
                         title: function (tooltipItems) {
                             return tooltipItems[0].value + " Commits foram feitos em " + tooltipItems[0].label;
                         },
-                        label: function (tooltipItems) {
+                        label: function (tooltipItems, data) {
                             if(tooltipItems.datasetIndex === 0){
                                 let str = [];
                                 Array.from(devCommitsValues[tooltipItems.index]).forEach(function (value, i) {
@@ -93,7 +93,7 @@
                                 });
                                 return str;
                             }
-                            let dev = devCommitsKeys[tooltipItems.index][tooltipItems.datasetIndex];
+                            let dev = data.datasets[tooltipItems.datasetIndex].label;
                             let key =  dev === '' ? 'Anônimo' : dev;
                             return  key + ": " + tooltipItems.value;
                         },

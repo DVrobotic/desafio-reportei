@@ -27,12 +27,14 @@ class PagesController extends Controller
     public function dashboard(Request $request)
     {
 
+        self::apianalysis($request);
+
         //****************************** CHARTS *********************************//
 
         //setting up start date, end date and period with its pace
-        $start = (new DateTime("-2 months  11:59:59pm"));
+        $start = (new DateTime("-8 years  11:59:59pm"));
         $end = (new DateTime("now"));
-        $pace = new DateInterval('P1D');
+        $pace = new DateInterval('P1M');
 
         $period = new DatePeriod(
             $start,
@@ -151,7 +153,7 @@ class PagesController extends Controller
         foreach($devs as $dev){
             array_push($devsDatasets,
                 [
-                    'label' => $dev,
+                    'label' => $dev != '' ? $dev : 'Anônimo',
                     'backgroundColor' => "#". dechex(rand(0,10000000)) . "33",  //33 is for 0.2 opacity
                     'borderColor' => '#' . dechex(rand(0,10000000)) . "33",
                     'data' => $commitsGroupCount->pluck($dev),
@@ -358,9 +360,11 @@ class PagesController extends Controller
 
         return get_defined_vars();
     }
+
     public static function saveCommitsToDatabase(Request $request, $owner,$repo)
     {
         $commits = [];
+        $anonymousCommits = [];
         $index = 0;
         do{
             $pr_request = new GitHubApiRequest
@@ -381,18 +385,23 @@ class PagesController extends Controller
         foreach($commits as $commit)
         {
             $created_at = strtotime($commit->commit->committer->date);
-            $pr_owner = isset($commit->author->login) ? $commit->author->login : '';
-
+            $login = isset($commit->author->login) ? $commit->author->login : '';
+            $loginId = isset($commit->author->id) ? $commit->author->id : -1;
+            $author =  $commit->commit->author->name;
             Commit::updateOrCreate
             ([
                 'created_at' => $created_at,
-                'owner' => $pr_owner,
+                'owner' => $login,
                 'repo' => $owner . '/' . $repo,
+                'owner_id' => $loginId,
+                'author' => $author,
             ],
             [
                 'created_at' => $created_at,
-                'owner' => $pr_owner,
+                'owner' => $login,
                 'repo' => $owner . '/' . $repo,
+                'owner_id' => $loginId,
+                'author' => $author,
             ]);
         }
     }
@@ -718,7 +727,6 @@ class PagesController extends Controller
     }
 
     public function payloadHandler(Request $request){
-        dd('test');
     }
 
     public static function secondsToTime($inputSeconds) {
@@ -799,7 +807,7 @@ class PagesController extends Controller
 
         //--------------------- pull requests -----------------------//
 
-        // $pullRequests = self::savePrsToDatabase($request, 'reportei', 'generator3');
+         //$pullRequests = self::savePrsToDatabase($request, 'reportei', 'generator3');
 //       dd('teste');
 
         //-----------------------------------------------------------//
@@ -812,8 +820,9 @@ class PagesController extends Controller
         //-----------------------------------------------------------//
 
         //------------ saving commits to db ------------------------//
-
-        //self::saveCommitsToDatabase($request, 'reportei', 'reportei');
+//
+//        self::saveCommitsToDatabase($request, 'reportei', 'reportei');
+//        dd('teste');
 
         //-----------------------------------------------------------//
 

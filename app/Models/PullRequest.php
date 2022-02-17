@@ -60,7 +60,6 @@ class PullRequest extends Model
             $end = $end->getTimestamp();
         }
         return $this->closed_at == 0 || $this->closed_at >= $end;
-
     }
 
     public static function scopeOpen($query, int $end, bool $open){
