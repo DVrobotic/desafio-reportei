@@ -87,11 +87,12 @@ class PagesController extends Controller
         $commitInfo = self::getCommitsInfo($period, $loginList);
         $totalCommitsByDev = $commitInfo['groupByDevs']->map(fn($group) => $group->count());
 
-        //grouping by the devs on the timeline
+        //counting the groupings
         $commitsGroupCount = self::getCommitCountGroup($commitInfo['axis'], $commitInfo['groupByDevs']->keys(), $loginList);
-        $commitGroupCountMember = self::getCommitCountGroup($commitInfo['axis'], $loginList->keys(), $loginList);
-        $commitGroupCountNotIncluded =  self::getCommitCountGroup($commitInfo['axis'], $commitInfo['notIncluded']->keys(), $loginList);
-        $commitGroupCountAnonymous =  self::getCommitCountGroup($commitInfo['axis'], $commitInfo['anonymous']->keys(), $loginList);
+        //filtering them by keys
+        $commitGroupCountMember = $commitsGroupCount->map(fn($group) => $group->intersectByKeys($loginList));
+        $commitGroupCountNotIncluded =  $commitsGroupCount->map(fn($group) => $group->intersectByKeys($commitInfo['notIncluded']));
+        $commitGroupCountAnonymous =  $commitsGroupCount->map(fn($group) => $group->intersectByKeys($commitInfo['anonymous']));
 
         return
         [
