@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Commit extends Model
 {
+
     use HasFactory;
 
     protected $guarded = [];
@@ -31,5 +32,7 @@ class Commit extends Model
     public function gitHubUser(){
         return $this->belongsTo(GitHubUser::class, 'fk_owner_id');
     }
+
+
 
 }

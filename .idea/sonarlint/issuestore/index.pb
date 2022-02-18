@@ -17,8 +17,6 @@ M
 app/Jobs/GitHubApiRequest.php,3\4\3409a219b1b0519dddba8b8dcc654942c4a0f0ec
 t
 Ddatabase/migrations/2022_02_11_141756_create_pull_requests_table.php,a\f\af93e70a100cbe55847fb5cf8e293756af205534
-J
-app/Models/PullRequest.php,9\c\9c8079da3394897673d9e6b528c46bf49c44c8a9
 U
 %database/seeders/GitHubUserSeeder.php,e\a\eaa20feb10822899b5e0f184a00d936f77bf1af6
 ]
@@ -31,3 +29,13 @@ X
 ,app/Http/Requests/StoreGitHubUserRequest.php,3\f\3f08b05705a1352f6f47cec36300e6f659143c94
 ]
 -app/Http/Controllers/GitHubUserController.php,c\0\c06be1d991022a29bcea3926f43b2dd530cf9606
+l
+<database/migrations/2014_10_12_000000_create_users_table.php,d\e\de963aaada5c6577b654cfbdcf083dc355b1fa2b
+l
+<database/migrations/2021_12_21_064157_create_roles_table.php,a\0\a0589f521b3f7dcdb36595fad8491c1f756992db
+C
+app/Models/User.php,a\9\a90f2e50cb06863b54effced365aa5f1fe7d9c88
+C
+app/Models/Role.php,c\e\cea6ac18c031be6ef6e67c3024fe49920f1be37d
+t
+Ddatabase/migrations/2022_02_17_174807_create_git_hub_users_table.php,9\d\9dc6cfb63e4fe50d0dadb6891c240842f78a5d34

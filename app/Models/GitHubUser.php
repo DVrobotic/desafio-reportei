@@ -16,4 +16,14 @@ class GitHubUser extends Model
         'name' => 'array',
         'name_dates' => 'array',
     ];
+
+
+    public function nameIncluded(string $name){
+        return in_array($name, $this->name);
+    }
+
+    public static function getNameAssociate($users, string $name){
+        return $users->filter(fn($user) => $user->nameIncluded($name))->first();
+    }
+
 }

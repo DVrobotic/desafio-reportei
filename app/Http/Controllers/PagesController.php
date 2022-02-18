@@ -87,25 +87,20 @@ class PagesController extends Controller
         //getting the types of commit authors that worked in the timeline
 
 
-        $allSources = $commitInfo['anonymous']->keys()->merge($commitInfo['groupByDevs']->keys());
-
+        $allSources = collect($commitInfo['anonymous'])->keys()->merge($commitInfo['groupByDevs']->keys());
 
         //maybe another field for names used or names associated
-        $members = $allSources->filter(function($dev)
-            {
-                return GithubUser::where('login', $dev)
-                    ->orwhereJsonContains('name', $dev)
-                    ->get()->count() > 0;
-            }
-        );
+        $membersLogin = GithubUser::whereIn('login', $allSources)->get();
 
-        $anonymous =  $commitInfo['anonymous']->keys();
+        $members = $membersLogin->map(fn($member) => $member->login);
+
+        $anonymous =  collect($commitInfo['anonymous'])->keys()->filter(fn($anon) => GitHubUser::getNameAssociate($membersLogin, $anon) == null);
 
         $notIncluded = $commitInfo['groupByDevs']->keys()->diff($members);
 
         //grouping by the devs on the timeline
         $commitsGroupCount = self::getCommitCountGroup($commitInfo['axis'], $allSources);
-        $commitGroupCountMember = self::getCommitCountGroup($commitInfo['axis'], $members);
+        $commitGroupCountMember = self::getCommitMemberGroupCount($commitInfo['axis'], $membersLogin);
         $commitGroupCountNotIncluded =  self::getCommitCountGroup($commitInfo['axis'], $notIncluded);
         $commitGroupCountAnonymous =  self::getCommitCountGroup($commitInfo['axis'], $anonymous, true);
 
@@ -184,6 +179,31 @@ class PagesController extends Controller
                 return $devs->mapWithKeys(fn($dev) =>
                 [
                     $dev => isset($group[$dev]) ? $group[$dev]->count() : 0
+                ]);
+            }
+        );
+    }
+
+
+    public static function getCommitMemberGroupCount($commitsAxis, $users){
+        return $commitsAxis->map
+        (
+        //iterating through the DateInterval commit groupings
+            function($commitsByDate) use ($users)
+            {
+                //groupBy of commits ownership
+                $group =  ($commitsByDate->groupBy(function($commit) use ($users){
+                    if($commit->owner != '') {
+                        return $commit->owner;
+                    } else {
+                        $knowAuthor = GitHubUser::getNameAssociate($users, $commit->author);
+                        return $knowAuthor != null ? $knowAuthor->login : '';
+                    }
+                }));
+                //iterating to count them and adding users that weren't on that day to use them on datasets
+                return $users->mapWithKeys(fn($dev) =>
+                [
+                    $dev->login => isset($group[$dev->login]) ? $group[$dev->login]->count() : 0
                 ]);
             }
         );
