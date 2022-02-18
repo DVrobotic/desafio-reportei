@@ -83,30 +83,22 @@ class PagesController extends Controller
 
         $membersLogin = GitHubUser::all();
         $loginList = GitHubUser::loginList($membersLogin);
-        $membersName = $membersLogin->pluck('login');
 
         $commitInfo = self::getCommitsInfo($period, $loginList);
-        //keys = devs / value = total commits by dev
         $totalCommitsByDev = $commitInfo['groupByDevs']->map(fn($group) => $group->count());
 
-        //getting the types of commit authors that worked in the timeline
-        $allSources = $commitInfo['groupByDevs']->keys();
-
-        $anonymous =  $commitInfo['anonymous']->keys()->diff($membersName);
-        $notIncluded = $commitInfo['groupByDevs']->keys()->diff($membersName);
-
         //grouping by the devs on the timeline
-        $commitsGroupCount = self::getCommitCountGroup($commitInfo['axis'], $allSources, $loginList);
+        $commitsGroupCount = self::getCommitCountGroup($commitInfo['axis'], $commitInfo['groupByDevs']->keys(), $loginList);
         $commitGroupCountMember = self::getCommitCountGroup($commitInfo['axis'], $loginList->keys(), $loginList);
-        $commitGroupCountNotIncluded =  self::getCommitCountGroup($commitInfo['axis'], $notIncluded, $loginList);
-        $commitGroupCountAnonymous =  self::getCommitCountGroup($commitInfo['axis'], $anonymous, $loginList);
+        $commitGroupCountNotIncluded =  self::getCommitCountGroup($commitInfo['axis'], $commitInfo['notIncluded']->keys(), $loginList);
+        $commitGroupCountAnonymous =  self::getCommitCountGroup($commitInfo['axis'], $commitInfo['anonymous']->keys(), $loginList);
 
         return
         [
-            "devs" => $allSources,
+            "devs" => $commitInfo['groupByDevs']->keys(),
             'members' => $membersLogin->keys(),
-            'notIncluded' => $notIncluded,
-            'anonymous' => $commitInfo['anonymous'],
+            'notIncluded' => $commitInfo['notIncluded']->keys(),
+            'anonymous' => $commitInfo['anonymous']->keys(),
 
             'commitArray' => $commitInfo['groupByDevs']->toArray(),
 
@@ -128,8 +120,8 @@ class PagesController extends Controller
             "anonymousKeys" => $commitGroupCountAnonymous->map(fn ($commitGroup) => $commitGroup->keys())->toArray(),
 
             'devsDatasets' => self::getDevDataset($commitsGroupCount, $membersLogin->keys()),
-            'notIncludedDatasets' => self::getDevDataset($commitGroupCountNotIncluded, $notIncluded),
-            'anonymousDatasets' => self::getDevDataset($commitGroupCountNotIncluded, $anonymous),
+            'notIncludedDatasets' => self::getDevDataset($commitGroupCountNotIncluded, $commitInfo['notIncluded']->keys()),
+            'anonymousDatasets' => self::getDevDataset($commitGroupCountNotIncluded, $commitInfo['anonymous']->keys()),
 
             "commitsByDev" => $totalCommitsByDev->toArray(),
             "devsCommitActivity" => self::getDevCommitActivity($totalCommitsByDev, $period),
@@ -155,13 +147,15 @@ class PagesController extends Controller
             return $loginList[$devName] ?? $devName;
         });
 
-        $anonymous = $groupByDevs->filter(fn($group) => $group[0]->owner == '');
+        $anonymous = $groupByDevs->filter(fn($group, $key) => $group[0]->owner == '' && !isset($loginList[$key]));
+        $notIncluded = $groupByDevs->filter(fn($group, $key) => $group[0]->owner != '' && !isset($loginList[$key]));
 
         return
         [
             'axis' =>  self::configYCommits($commits, $period), //plotting commits to respective date
             'groupByDevs' => $groupByDevs, //commits grouped
             'anonymous' => $anonymous,
+            'notIncluded' => $notIncluded,
         ];
     }
 
