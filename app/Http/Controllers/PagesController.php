@@ -29,6 +29,7 @@ class PagesController extends Controller
     public function dashboard(Request $request)
     {
 
+        $githubUser = GitHubUser::first();
         self::apiAnalysis($request);
 
         //****************************** CHARTS *********************************//
@@ -88,15 +89,14 @@ class PagesController extends Controller
 
 
         $allSources = collect($commitInfo['anonymous'])->keys()->merge($commitInfo['groupByDevs']->keys());
-
         //maybe another field for names used or names associated
-        $membersLogin = GithubUser::whereIn('login', $allSources)->get();
-
-        $members = $membersLogin->map(fn($member) => $member->login);
+        $membersLogin = $allSources->mapWithKeys(function($source){
+            $user = GitHubUser::where('login', $source)->orWhereJsonContains('name', $source)->first();
+            return $user != null ? [$user->login => $user] : [];
+        });
 
         $anonymous =  collect($commitInfo['anonymous'])->keys()->filter(fn($anon) => GitHubUser::getNameAssociate($membersLogin, $anon) == null);
-
-        $notIncluded = $commitInfo['groupByDevs']->keys()->diff($members);
+        $notIncluded = $commitInfo['groupByDevs']->keys()->diff($membersLogin->keys());
 
         //grouping by the devs on the timeline
         $commitsGroupCount = self::getCommitCountGroup($commitInfo['axis'], $allSources);
@@ -107,7 +107,7 @@ class PagesController extends Controller
         return
         [
             "devs" => $allSources,
-            'members' => $members,
+            'members' => $membersLogin->keys(),
             'notIncluded' => $notIncluded,
             'anonymous' => $commitInfo['anonymous'],
 
@@ -130,7 +130,7 @@ class PagesController extends Controller
             "anonymousValues" => $commitGroupCountAnonymous->map(fn ($commitGroup) => $commitGroup->values())->toArray(),
             "anonymousKeys" => $commitGroupCountAnonymous->map(fn ($commitGroup) => $commitGroup->keys())->toArray(),
 
-            'devsDatasets' => self::getDevDataset($commitsGroupCount, $members),
+            'devsDatasets' => self::getDevDataset($commitsGroupCount, $membersLogin->keys()),
             'notIncludedDatasets' => self::getDevDataset($commitGroupCountNotIncluded, $notIncluded),
             'anonymousDatasets' => self::getDevDataset($commitGroupCountNotIncluded, $anonymous),
 
