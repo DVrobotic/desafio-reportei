@@ -80,29 +80,26 @@ class PagesController extends Controller
     }
 
     public static function getCommitsPlotted(DatePeriod $period){
-        $commitInfo = self::getCommitsInfo($period);
+
+        $membersLogin = GitHubUser::all();
+        $loginList = GitHubUser::loginList($membersLogin);
+        $membersName = $membersLogin->pluck('login');
+
+        $commitInfo = self::getCommitsInfo($period, $loginList);
         //keys = devs / value = total commits by dev
         $totalCommitsByDev = $commitInfo['groupByDevs']->map(fn($group) => $group->count());
 
-
         //getting the types of commit authors that worked in the timeline
+        $allSources = $commitInfo['groupByDevs']->keys();
 
-
-        $allSources = collect($commitInfo['anonymous'])->keys()->merge($commitInfo['groupByDevs']->keys());
-        //maybe another field for names used or names associated
-        $membersLogin = $allSources->mapWithKeys(function($source){
-            $user = GitHubUser::where('login', $source)->orWhereJsonContains('name', $source)->first();
-            return $user != null ? [$user->login => $user] : [];
-        });
-
-        $anonymous =  collect($commitInfo['anonymous'])->keys()->filter(fn($anon) => GitHubUser::getNameAssociate($membersLogin, $anon) == null);
-        $notIncluded = $commitInfo['groupByDevs']->keys()->diff($membersLogin->keys());
+        $anonymous =  $commitInfo['anonymous']->keys()->diff($membersName);
+        $notIncluded = $commitInfo['groupByDevs']->keys()->diff($membersName);
 
         //grouping by the devs on the timeline
-        $commitsGroupCount = self::getCommitCountGroup($commitInfo['axis'], $allSources);
-        $commitGroupCountMember = self::getCommitMemberGroupCount($commitInfo['axis'], $membersLogin);
-        $commitGroupCountNotIncluded =  self::getCommitCountGroup($commitInfo['axis'], $notIncluded);
-        $commitGroupCountAnonymous =  self::getCommitCountGroup($commitInfo['axis'], $anonymous, true);
+        $commitsGroupCount = self::getCommitCountGroup($commitInfo['axis'], $allSources, $loginList);
+        $commitGroupCountMember = self::getCommitCountGroup($commitInfo['axis'], $loginList->keys(), $loginList);
+        $commitGroupCountNotIncluded =  self::getCommitCountGroup($commitInfo['axis'], $notIncluded, $loginList);
+        $commitGroupCountAnonymous =  self::getCommitCountGroup($commitInfo['axis'], $anonymous, $loginList);
 
         return
         [
@@ -141,7 +138,7 @@ class PagesController extends Controller
         ];
     }
 
-    public static function getCommitsInfo(DatePeriod $period){
+    public static function getCommitsInfo(DatePeriod $period, $loginList){
 
         //setting up dates
         $start = $period->getStartDate();
@@ -152,8 +149,14 @@ class PagesController extends Controller
 
         //commits collection
         $commits = $commitQuery->get();
-        $groupByDevs = $commitQuery->get()->groupBy('owner');
-        $anonymous = isset($groupByDevs['']) ? $groupByDevs['']->groupBy('author') : [];
+
+        $groupByDevs = $commits->groupBy(function($commit) use ( $loginList){
+            $devName = $commit->owner != '' ? $commit->owner : $commit->author;
+            return $loginList[$devName] ?? $devName;
+        });
+
+        $anonymous = $groupByDevs->filter(fn($group) => $group[0]->owner == '');
+
         return
         [
             'axis' =>  self::configYCommits($commits, $period), //plotting commits to respective date
@@ -162,48 +165,22 @@ class PagesController extends Controller
         ];
     }
 
-    public static function getCommitCountGroup($commitsAxis, $devs, bool $anonymous = false){
+    public static function getCommitCountGroup($commitsAxis, $devs, $loginList){
         return $commitsAxis->map
         (
         //iterating through the DateInterval commit groupings
-            function($commitsByDate) use ($devs, $anonymous)
+            function($commitsByDate) use ($devs, $loginList)
             {
                 //groupBy of commits ownership
-                if(!$anonymous){
-                    $group =  ($commitsByDate->groupBy('owner'));
-                } else{
-                    $group =  ($commitsByDate->where('owner', null)->groupBy('author'));
-                }
+                $group =  ($commitsByDate->groupBy(function($commit) use ($loginList){
+                    $devName = $commit->owner != '' ? $commit->owner : $commit->author;
+                    return $loginList[$devName] ?? $devName;
+                }));
 
                 //iterating to count them and adding devs that weren't on that day to use them on datasets
                 return $devs->mapWithKeys(fn($dev) =>
                 [
                     $dev => isset($group[$dev]) ? $group[$dev]->count() : 0
-                ]);
-            }
-        );
-    }
-
-
-    public static function getCommitMemberGroupCount($commitsAxis, $users){
-        return $commitsAxis->map
-        (
-        //iterating through the DateInterval commit groupings
-            function($commitsByDate) use ($users)
-            {
-                //groupBy of commits ownership
-                $group =  ($commitsByDate->groupBy(function($commit) use ($users){
-                    if($commit->owner != '') {
-                        return $commit->owner;
-                    } else {
-                        $knowAuthor = GitHubUser::getNameAssociate($users, $commit->author);
-                        return $knowAuthor != null ? $knowAuthor->login : '';
-                    }
-                }));
-                //iterating to count them and adding users that weren't on that day to use them on datasets
-                return $users->mapWithKeys(fn($dev) =>
-                [
-                    $dev->login => isset($group[$dev->login]) ? $group[$dev->login]->count() : 0
                 ]);
             }
         );
