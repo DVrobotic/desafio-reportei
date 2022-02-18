@@ -28,7 +28,6 @@ class PagesController extends Controller
 
     public function dashboard(Request $request)
     {
-
         $githubUser = GitHubUser::first();
         self::apiAnalysis($request);
 
@@ -37,7 +36,7 @@ class PagesController extends Controller
         //setting up start date, end date and period with its pace
         $start = (new DateTime("-8 years  11:59:59pm"));
         $end = (new DateTime("now"));
-        $pace = new DateInterval('P1M');
+        $pace = new DateInterval('P1Y');
 
         $period = new DatePeriod(
             $start,
@@ -95,7 +94,6 @@ class PagesController extends Controller
         $commitGroupCountMember = $commitsGroupCount->map(fn($group) => $group->intersectByKeys($loginList));
         $commitGroupCountNotIncluded =  $commitsGroupCount->map(fn($group) => $group->intersectByKeys($commitInfo['notIncluded']));
         $commitGroupCountAnonymous =  $commitsGroupCount->map(fn($group) => $group->intersectByKeys($commitInfo['anonymous']));
-
         return
         [
             "devs" => $commitInfo['groupByDevs']->keys(),
@@ -187,6 +185,7 @@ class PagesController extends Controller
         $commitsBydev = collect(self::getCommitContribution($request, 'reportei', 'reportei'));
         $totalWeeks = !empty($commitsBydev) ? collect($commitsBydev[0]->weeks)->count() : 0;
         $commitsByDevData = [
+            'total' => $commitsBydev,
             'daily' => $commitsBydev->mapWithKeys(fn($dev) => [$dev->author->login => $totalWeeks > 0 ? $dev->total/($totalWeeks*7) : 0]),
             'weekly' => $commitsBydev->mapWithKeys(fn($dev) => [$dev->author->login => $totalWeeks > 0 ? $dev->total/$totalWeeks : 0]),
             'total' => $commitsBydev->mapWithKeys(fn($dev) => [$dev->author->login => $dev->total]),
@@ -233,7 +232,8 @@ class PagesController extends Controller
             [
                 'daily' => $value/$days,
                 'weekly' => $value/$weeks,
-                'monthly' => $value/$months
+                'monthly' => $value/$months,
+                'total' => $value,
             ]
             );
         }

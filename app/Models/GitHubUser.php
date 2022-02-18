@@ -28,12 +28,14 @@ class GitHubUser extends Model
 
     public static function LoginList($users){
         $logins = collect([]);
+
         foreach($users as $user){
             $logins->put($user->login,$user->login);
             foreach($user->name as $name){
                 $logins->put($name, $user->login);
             }
         }
+
         return  $logins;
     }
 

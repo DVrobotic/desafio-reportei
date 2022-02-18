@@ -24,6 +24,7 @@
                 <div class="d-block">Diária: {{ number_format($value['daily'], 2) }}</div>
                 <div class="d-block">Semanal: {{ number_format($value['weekly'], 2) }}</div>
                 <div class="d-block">Mensal: {{ number_format($value['monthly'], 2) }}</div>
+                <div class="d-block">Total: {{ number_format($value['total'], 2) }}</div>
             </div>
         @endforeach
     </div>

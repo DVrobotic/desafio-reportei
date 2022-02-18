@@ -9,8 +9,6 @@ R
 "database/factories/UserFactory.php,3\4\3401747fc769758d97931473eab6222bc2abf009
 O
 database/seeders/UserSeeder.php,9\a\9a5fbe4af4b23f69ef07f35a2d8a4d7c75c60797
-]
--app/Http/Controllers/Auth/LoginController.php,d\2\d2f6ed6918131d406f7abde65d228bce0ec7f88c
 =
 composer.json,3\9\3957b91a0d8450cea0115cfd5af69eac90d75897
 M
@@ -37,5 +35,3 @@ C
 app/Models/User.php,a\9\a90f2e50cb06863b54effced365aa5f1fe7d9c88
 C
 app/Models/Role.php,c\e\cea6ac18c031be6ef6e67c3024fe49920f1be37d
-t
-Ddatabase/migrations/2022_02_17_174807_create_git_hub_users_table.php,9\d\9dc6cfb63e4fe50d0dadb6891c240842f78a5d34
