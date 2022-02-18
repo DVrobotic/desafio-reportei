@@ -4,6 +4,15 @@
 
 @section('content')
     <div class="my-4">
+        <h3>Merges de nome</h3>
+        @foreach($members as $member)
+            <div class="d-block">
+                <label class="d-inline">{{ $member->login }} : </label>
+                    <div class="d-inline">{{ implode(' / ', $member->name) }}  </div>
+            </div>
+        @endforeach
+    </div>
+    <div class="my-4">
         <h4>Commits por dia (reportei - master)</h4>
         <canvas height="200em" id="LineChart"></canvas>
     </div>

@@ -74,6 +74,8 @@ class PagesController extends Controller
 
         //-----------------------------------------------------------//
 
+        $members = GitHubUser::all();
+
         //**********************************************************************************//
 
         return view('admin.dashboard', get_defined_vars());
