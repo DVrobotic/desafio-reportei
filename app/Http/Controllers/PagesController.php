@@ -6,21 +6,21 @@ use App\Jobs\GitHubApiRequest;
 use App\Models\Commit;
 use App\Models\GitHubUser;
 use App\Models\PullRequest;
-use Carbon\Carbon;
-use Cassandra\Date;
 use DateInterval;
 use DatePeriod;
 use DateTime;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Request;
-use Auth;
 use Illuminate\Support\Collection;
-use function Livewire\str;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Redirect;
 
 
 class PagesController extends Controller
 {
 
+    //blablabla
     public function home()
     {
         return view('auth.login');
@@ -28,7 +28,8 @@ class PagesController extends Controller
 
     public function dashboard(Request $request)
     {
-        $githubUser = GitHubUser::first();
+        $githubUwser = GitHubUser::first();
+
         self::apiAnalysis($request);
 
         //****************************** CHARTS *********************************//
@@ -852,12 +853,19 @@ class PagesController extends Controller
         return $obj;
     }
 
-    public static function secondsToTimeStr($inputSeconds){
+    public static function secondsToTimeStr($inputSeconds)
+    {
         $obj = self::secondsToTime($inputSeconds);
         return "{$obj['d']}D {$obj['h']}H {$obj['m']}M {$obj['s']}S";
     }
 
-    public static function apiAnalysis(Request $request){
+    public static function apiAnalysis(Request $request)
+    {
+//        $GHrequest = new GitHubApiRequest($request->githubUser['nickname'], $request->githubUser['token'], "");
+//
+//        $test = $GHrequest->handle('/repos/Pedrox42/trabalho-ed2-1/traffic/clones');
+//        dd(json_decode($test));
+
         //----------------- user,search,general requests -----------------------//
 
         //$general = self::general_requests($request);
